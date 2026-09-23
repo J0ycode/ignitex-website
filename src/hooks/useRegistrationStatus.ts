@@ -20,7 +20,8 @@ export function useRegistrationStatus(): UseRegistrationStatusReturn {
 
   const syncServerTime = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/status')
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiUrl}/api/status`)
       if (res.ok) {
         const data = await res.json()
         setTeamCount(data.teamCount || 0)

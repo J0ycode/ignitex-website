@@ -5,7 +5,7 @@ import { FiCheck, FiEdit2, FiZap, FiUsers, FiMail, FiPhone, FiBook } from 'react
 import toast from 'react-hot-toast'
 
 // ── Backend API URL ──────────────────────────────────────────────────────
-const API_URL = 'http://localhost:5000/api/register'
+const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/register` : 'http://localhost:5000/api/register'
 
 interface StepReviewProps {
   formData: TeamFormValues
