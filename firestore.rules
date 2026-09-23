@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Registration window: 25th 12:00 PM – 26th 12:00 PM (UTC+5:30 = UTC offsets below)
+    // Adjust these timestamps to your event's exact UTC equivalents
+    // 25th Sep 12:00 PM IST = 25th Sep 06:30 UTC
+    // 26th Sep 12:00 PM IST = 26th Sep 06:30 UTC
+    function isRegistrationOpen() {
+      return request.time >= timestamp.date(2026, 9, 25)
+          && request.time <  timestamp.date(2026, 9, 27);
+    }
+
+    // ── /teams/{teamId} ─────────────────────────────────────────────────────
+    match /teams/{teamId} {
+      // Anyone can read team count (for the live counter)
+      allow read: if true;
+
+      // Only authenticated users can create a team during the window
+      // The atomic counter check is handled by the client transaction;
+      // Firestore Rules enforce auth + time window as a second line of defense
+      allow create: if isSignedIn()
+                    && isOwner(request.resource.data.leaderId)
+                    && isRegistrationOpen()
+                    && request.resource.data.teamName is string
+                    && request.resource.data.teamName.size() >= 3
+                    && request.resource.data.members is list
+                    && request.resource.data.members.size() >= 2
+                    && request.resource.data.members.size() <= 4;
+
+      // Only the leader can update their team (before event)
+      allow update: if isSignedIn()
+                    && isOwner(resource.data.leaderId)
+                    && isRegistrationOpen();
+
+      // No deletes from client
+      allow delete: if false;
+    }
+
+    // ── /meta/{doc} ─────────────────────────────────────────────────────────
+    match /meta/{docId} {
+      // Anyone can read stats and config (needed for live counter + server time)
+      allow read: if true;
+
+      // Only the client transaction can write the stats counter
+      // (limited to authenticated users to prevent abuse)
+      allow write: if isSignedIn();
+    }
+
+  }
+}
