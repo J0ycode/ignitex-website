@@ -182,23 +182,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           </span>
         </motion.div>
 
-        {/* Tagline with heartbeat */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="flex items-center justify-center gap-3 mb-10"
-        >
-          <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent to-galaksi-400/50" />
-          <motion.p
-            className="font-display text-base sm:text-lg text-galaksi-100 font-medium"
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            "Ideas are the pulses of progress"
-          </motion.p>
-          <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent to-galaksi-400/50" />
-        </motion.div>
+
 
         {/* Heartbeat line */}
         <motion.div
