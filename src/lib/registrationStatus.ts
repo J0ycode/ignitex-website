@@ -13,7 +13,7 @@ export const REGISTRATION_STATUS = {
 
 export type RegistrationStatus = typeof REGISTRATION_STATUS[keyof typeof REGISTRATION_STATUS]
 
-export const MAX_TEAMS = 20
+export const MAX_TEAMS = 15
 
 /** Derive the key dates from any reference date (uses its year+month) */
 export function getRegistrationDates(ref: Date) {
