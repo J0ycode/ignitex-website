@@ -6,7 +6,6 @@ import LandingPage from './pages/LandingPage'
 import RegisterPage from './pages/RegisterPage'
 import ConfirmationPage from './pages/ConfirmationPage'
 import PaymentPage from './pages/PaymentPage'
-import PaymentCallbackPage from './pages/PaymentCallbackPage'
 import TradingBackground from './components/ui/TradingBackground'
 
 export default function App() {
@@ -23,7 +22,6 @@ export default function App() {
             <Route path="/"                  element={<LandingPage />} />
             <Route path="/register"          element={<RegisterPage />} />
             <Route path="/payment"           element={<PaymentPage />} />
-            <Route path="/payment-callback" element={<PaymentCallbackPage />} />
             <Route path="/confirmation"      element={<ConfirmationPage />} />
           </Routes>
         </div>

@@ -1,0 +1,22 @@
+
+[functions.paisa-create]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paisa-create/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/paisa-create/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/paisa-create/*.html" ]
+
+[functions.paisa-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paisa-webhook/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/paisa-webhook/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/paisa-webhook/*.html" ]

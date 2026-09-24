@@ -3,36 +3,18 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiZap, FiAlertCircle } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
-
-const REGISTRATION_FEE = 1 // ₹1 for testing
+import KonfHubWidget from '../components/KonfHubWidget'
 
 export default function PaymentPage() {
   const [params] = useSearchParams()
   const registrationId = params.get('id') ?? ''
   const teamName       = params.get('team') ?? ''
 
-  const [phase, setPhase]   = useState<'loading' | 'ready_to_pay' | 'waiting' | 'error'>('loading')
+  const [phase, setPhase]   = useState<'loading' | 'ready_to_pay' | 'error'>('loading')
   const [error, setError]   = useState<string | null>(null)
-  const [dots, setDots]     = useState('')
-  const [countdown, setCountdown] = useState(40)
-  const [paymentUrl, setPaymentUrl] = useState<string>('')
-
-  // Animate dots
-  useEffect(() => {
-    const t = setInterval(() => setDots(d => d.length >= 3 ? '' : d + '.'), 400)
-    return () => clearInterval(t)
-  }, [])
-
-  // 40 second countdown timer
-  useEffect(() => {
-    if (phase !== 'waiting') return
-    if (countdown <= 0) {
-      window.location.href = `/payment-callback?id=${registrationId}&team=${encodeURIComponent(teamName)}`
-      return
-    }
-    const t = setInterval(() => setCountdown(c => c - 1), 1000)
-    return () => clearInterval(t)
-  }, [phase, countdown, registrationId, teamName])
+  const [ticketFile, setTicketFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isPaymentDone, setIsPaymentDone] = useState(false)
 
   useEffect(() => {
     if (!registrationId) {
@@ -45,7 +27,7 @@ export default function PaymentPage() {
 
   const initiatePayment = async () => {
     try {
-      // 1. Fetch team row to get team ID
+      // 1. Fetch team row to verify it exists
       const { data: team, error: teamErr } = await supabase
         .from('teams')
         .select('id')
@@ -54,66 +36,14 @@ export default function PaymentPage() {
 
       if (teamErr || !team) throw new Error('Registration not found. Please go back and try again.')
 
-      // 2. Fetch leader for that specific team
-      const { data: leader, error: leaderErr } = await supabase
-        .from('members')
-        .select('name, email, phone')
-        .eq('team_id', team.id)
-        .eq('is_leader', true)
-        .single()
-
-      if (leaderErr || !leader) throw new Error('Could not fetch team leader details')
-
-      // 2. Store payment initiation timestamp (non-fatal if column missing)
-      const now = new Date()
-      const { error: updateErr } = await supabase
-        .from('teams')
-        .update({
-          payment_status: 'initiated',
-          payment_initiated_at: now.toISOString(),
-        })
-        .eq('registration_id', registrationId)
-      if (updateErr) console.warn('Could not update payment_initiated_at:', updateErr.message)
-
-      // 3. Build redirect URL — EkQR requires a public HTTPS URL
-      //    Set VITE_APP_URL in .env to your deployed URL or ngrok tunnel
-      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin
-      const redirectUrl = `${appUrl}/payment-callback?id=${registrationId}&team=${encodeURIComponent(teamName)}`
-      // Phase is updated when EkQR responds
-
-      // 4. Call edge function to create EkQR order
-      const { data, error: fnErr } = await supabase.functions.invoke('ekqr-create-order', {
-        body: {
-          client_txn_id:   registrationId,
-          amount:          String(REGISTRATION_FEE),
-          p_info:          `igniteX Registration — ${teamName}`,
-          customer_name:   leader.name,
-          customer_email:  leader.email,
-          customer_mobile: leader.phone,
-          redirect_url:    redirectUrl,
-        },
-      })
-
-      if (fnErr) throw fnErr
-      if (!data?.status) throw new Error(data?.msg || 'Failed to create payment order')
-
-      const url: string = data?.data?.payment_url ?? data?.payment_url ?? ''
-      if (!url) throw new Error('No payment URL returned from EkQR')
-      
-      setPaymentUrl(url)
-      setPhase('ready_to_pay')
+      // Just transition to showing the KonfHub widget
+      setTimeout(() => setPhase('ready_to_pay'), 1000)
 
     } catch (err: unknown) {
       console.error('Payment init error:', err)
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setPhase('error')
     }
-  }
-
-  const handlePayClick = () => {
-    if (!paymentUrl) return
-    window.open(paymentUrl, '_blank')
-    setPhase('waiting')
   }
 
   if (phase === 'error') {
@@ -197,20 +127,13 @@ export default function PaymentPage() {
         {/* Text */}
         <div>
           <h1 className="font-display font-extrabold text-3xl text-white mb-3">
-            {phase === 'loading' && 'Setting up payment'}
+            {phase === 'loading' && 'Setting up payment gateway'}
             {phase === 'ready_to_pay' && 'Ready to Pay'}
-            {phase === 'waiting' && 'Waiting for Payment'}
-            {(phase === 'loading') && <span className="text-galaksi-400">{dots}</span>}
           </h1>
           <p className="text-gray-500 text-sm">
-            {phase === 'loading' && 'Creating your secure UPI payment order'}
-            {phase === 'ready_to_pay' && 'Click the button below to open the payment page'}
-            {phase === 'waiting' && (
-              <>
-                Please complete the payment in the new tab.<br />
-                Automatically verifying in <span className="text-galaksi-400 font-bold">{countdown}s</span>...
-              </>
-            )}
+            {phase === 'loading' && 'Setting up payment gateway'}
+            {phase === 'ready_to_pay' && !isPaymentDone && 'Complete your payment via KonfHub below'}
+            {phase === 'ready_to_pay' && isPaymentDone && 'Upload your KonfHub ticket below'}
           </p>
         </div>
 
@@ -236,24 +159,82 @@ export default function PaymentPage() {
           >
             <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">Amount</span>
             <span className="font-display font-black text-2xl text-white">
-              ₹<span className="text-galaksi-400">{REGISTRATION_FEE}</span>
+              <span className="text-galaksi-400">KonfHub Checkout</span>
             </span>
           </div>
         </motion.div>
 
         {phase === 'ready_to_pay' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <button
-              onClick={handlePayClick}
-              className="btn-galaksi w-full"
-            >
-              Pay Now (₹{REGISTRATION_FEE})
-            </button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
+            <div onClickCapture={() => setIsPaymentDone(true)}>
+              <KonfHubWidget onPaymentComplete={() => setIsPaymentDone(true)} />
+            </div>
+            
+            {isPaymentDone && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-sm text-gray-400 mb-3">
+                  Awesome! Now just upload your KonfHub ticket to confirm registration.
+                </p>
+                
+                <div className="mb-4">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setTicketFile(e.target.files?.[0] || null)}
+                    className="block w-full text-sm text-gray-400
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-galaksi-500 file:text-white
+                      hover:file:bg-galaksi-600
+                      cursor-pointer"
+                  />
+                </div>
+
+                {ticketFile && (
+                  <button
+                    onClick={async () => {
+                      setIsUploading(true)
+                      try {
+                        // Attempt to upload to Supabase storage if it exists, otherwise just redirect
+                        // We will use a bucket named 'tickets'. If it fails, we still allow them to pass (fallback).
+                        if (registrationId && ticketFile) {
+                          const fileExt = ticketFile.name.split('.').pop()
+                          const fileName = `${registrationId}.${fileExt}`
+                          const { error: uploadErr } = await supabase.storage
+                            .from('tickets')
+                            .upload(fileName, ticketFile, { upsert: true })
+                          
+                          if (!uploadErr) {
+                            // Update teams table to mark ticket uploaded
+                            await supabase.from('teams').update({ payment_status: 'ticket_uploaded' }).eq('id', registrationId)
+                          }
+                        }
+                      } catch (e) {
+                        console.error("Upload non-fatal error:", e)
+                      }
+
+                      setTimeout(() => {
+                        const params = new URLSearchParams(window.location.search)
+                        const regId = params.get('id') || 'unknown'
+                        const team = params.get('team') || 'Your Team'
+                        window.location.href = `/confirmation?id=${regId}&team=${encodeURIComponent(team)}`
+                      }, 10000)
+                    }}
+                    disabled={isUploading}
+                    className="btn-galaksi w-full flex items-center justify-center gap-2"
+                    style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.3)', color: '#fff' }}
+                  >
+                    {isUploading ? 'Finalizing Registration...' : 'Confirm Registration'}
+                  </button>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         )}
 
-        <p className="text-xs text-gray-600">
-          Secured by EkQR · Pay via any UPI app
+        <p className="text-xs text-gray-600 mt-4">
+          Secured by KonfHub
         </p>
       </motion.div>
     </div>
