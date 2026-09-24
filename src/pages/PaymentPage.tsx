@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiZap, FiAlertCircle } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
-import KonfHubWidget from '../components/KonfHubWidget'
 import gpayQr from '../assets/gpay.jpeg'
 
 export default function PaymentPage() {
@@ -242,8 +241,16 @@ export default function PaymentPage() {
                   Please use the KonfHub button below to download your official team ticket.
                 </p>
                 
-                <div className="mb-8">
-                  <KonfHubWidget />
+                <div className="mb-8 w-full rounded-xl overflow-hidden bg-white/5 p-2 border border-white/10">
+                  <iframe 
+                    src="https://konfhub.com/widget/id/a6805b76-b8e6-4512-9a02-5fac9fc51ec1" 
+                    id="konfhub-widget" 
+                    title="Register for IgniteX" 
+                    width="100%" 
+                    height="500" 
+                    allow="payment"
+                    style={{ border: 'none', borderRadius: '8px' }}
+                  />
                 </div>
                 
                 <button
