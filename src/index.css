@@ -16,107 +16,103 @@
   }
 
   body {
-    background-color: #08080f;
-    color: #f0f0f0;
+    background-color: #5B508C;
+    color: #F4F1FF;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #08080f;
+    background: #4a4073;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #ff6b00;
-    border-radius: 3px;
+    background: #a695e3;
+    border-radius: 4px;
   }
 
   ::selection {
-    background: rgba(255, 107, 0, 0.35);
+    background: rgba(166, 149, 227, 0.4);
     color: #fff;
   }
 }
 
 @layer components {
-  .ember-glow {
-    box-shadow: 0 0 20px 4px rgba(255,107,0,0.3), 0 0 60px 10px rgba(255,107,0,0.1);
-  }
-
-  .ember-glow-text {
-    text-shadow: 0 0 20px rgba(255, 107, 0, 0.6), 0 0 60px rgba(255, 107, 0, 0.3);
-  }
-
-  .flame-glow-text {
-    text-shadow: 0 0 30px rgba(255, 48, 17, 0.8), 0 0 80px rgba(255, 107, 0, 0.4);
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 107, 0, 0.15);
-    border-radius: 16px;
+  .glass-card-purple {
+    background: #8174B8;
+    border: 2px solid #9383cc;
+    border-radius: 32px;
+    box-shadow: 
+      inset 4px 4px 10px rgba(255, 255, 255, 0.2),
+      inset -4px -4px 10px rgba(74, 64, 115, 0.5),
+      8px 12px 24px rgba(59, 51, 92, 0.6);
   }
 
   .glass-card-dark {
-    background: rgba(15, 15, 26, 0.7);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 107, 0, 0.1);
-    border-radius: 16px;
+    background: #4A4073;
+    border: 2px solid #5b508c;
+    border-radius: 32px;
+    box-shadow: 
+      inset 4px 4px 10px rgba(129, 116, 184, 0.3),
+      inset -4px -4px 10px rgba(42, 36, 66, 0.6),
+      8px 12px 24px rgba(42, 36, 66, 0.8);
   }
 
-  .btn-ember {
-    @apply relative inline-flex items-center justify-center px-8 py-3 font-display font-semibold text-white rounded-lg overflow-hidden transition-all duration-300;
-    background: linear-gradient(135deg, #ff6b00 0%, #ff3011 100%);
-    box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4);
+  .btn-galaksi {
+    @apply relative inline-flex items-center justify-center px-8 py-3 font-display font-bold rounded-full overflow-hidden transition-all duration-300;
+    background: #F4F1FF;
+    color: #5B508C;
+    box-shadow: 0 4px 14px rgba(59, 51, 92, 0.4);
   }
 
-  .btn-ember:hover {
-    box-shadow: 0 6px 30px rgba(255, 107, 0, 0.7);
+  .btn-galaksi:hover {
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(59, 51, 92, 0.6);
     transform: translateY(-2px);
   }
 
-  .btn-ember:active {
+  .btn-galaksi:active {
     transform: translateY(0);
   }
 
-  .btn-outline-ember {
-    @apply relative inline-flex items-center justify-center px-8 py-3 font-display font-semibold rounded-lg overflow-hidden transition-all duration-300;
-    color: #ff6b00;
-    border: 1.5px solid rgba(255, 107, 0, 0.5);
+  .btn-outline-galaksi {
+    @apply relative inline-flex items-center justify-center px-8 py-3 font-display font-bold rounded-full overflow-hidden transition-all duration-300;
+    color: #F4F1FF;
+    border: 2px solid #a695e3;
     background: transparent;
   }
 
-  .btn-outline-ember:hover {
-    background: rgba(255, 107, 0, 0.1);
-    border-color: #ff6b00;
-    box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+  .btn-outline-galaksi:hover {
+    background: rgba(166, 149, 227, 0.15);
+    border-color: #c9bbf0;
   }
 
-  .input-ember {
-    @apply w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 transition-all duration-200;
-    background: rgba(22, 22, 37, 0.8);
-    border: 1px solid rgba(255, 107, 0, 0.2);
+  .input-galaksi {
+    @apply w-full px-5 py-4 rounded-2xl text-white placeholder:text-galaksi-200 transition-all duration-200;
+    background: #5B508C;
+    border: 2px solid #695c9a;
     font-family: 'Inter', sans-serif;
     outline: none;
+    box-shadow: inset 2px 2px 8px rgba(59, 51, 92, 0.4);
   }
 
-  .input-ember:focus {
-    border-color: rgba(255, 107, 0, 0.7);
-    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.12);
+  .input-galaksi:focus {
+    border-color: #a695e3;
+    box-shadow: inset 2px 2px 8px rgba(59, 51, 92, 0.4), 0 0 0 3px rgba(166, 149, 227, 0.2);
   }
 
-  .input-ember.error {
-    border-color: rgba(255, 48, 17, 0.7);
-    box-shadow: 0 0 0 3px rgba(255, 48, 17, 0.12);
+  .input-galaksi.error {
+    border-color: #ff8c8c;
+    box-shadow: 0 0 0 3px rgba(255, 140, 140, 0.2);
   }
 
-  .label-ember {
-    @apply block text-sm font-medium mb-1.5;
-    color: rgba(240, 240, 240, 0.7);
+  .label-galaksi {
+    @apply block text-sm font-semibold mb-2 ml-1;
+    color: #E2D8FF;
     font-family: 'Space Grotesk', sans-serif;
   }
 
@@ -125,121 +121,28 @@
   }
 
   .track-card {
-    @apply glass-card p-6 transition-all duration-300 cursor-default;
+    @apply glass-card-purple p-6 transition-all duration-300 cursor-default;
   }
 
   .track-card:hover {
-    border-color: rgba(255, 107, 0, 0.4);
-    box-shadow: 0 0 30px rgba(255, 107, 0, 0.1);
-    transform: translateY(-4px);
+    transform: translateY(-6px);
   }
 }
 
 @layer utilities {
-  .text-gradient-ember {
-    background: linear-gradient(135deg, #ff6b00 0%, #ffd166 50%, #ff3011 100%);
+  .text-gradient-galaksi {
+    background: linear-gradient(135deg, #F4F1FF 0%, #C9BBF0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
-  .text-gradient-fire {
-    background: linear-gradient(135deg, #ff8c35 0%, #ff6b00 40%, #ff3011 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .border-ember {
-    border-color: rgba(255, 107, 0, 0.3);
-  }
-
-  .noise-bg::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.4;
-  }
-}
-
-/* Grid scan lines overlay */
-.grid-overlay {
-  background-image:
-    linear-gradient(rgba(255,107,0,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,107,0,0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-/* Particle ember dots */
-.ember-particle {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ff6b00 0%, transparent 70%);
-  animation: float 6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Terminal text blink */
-.cursor-blink::after {
-  content: '|';
-  animation: blink 1s step-end infinite;
-  color: #ff6b00;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* Countdown digit card */
-.digit-card {
-  background: rgba(22, 22, 37, 0.9);
-  border: 1px solid rgba(255, 107, 0, 0.25);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-}
-
-.digit-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.5), transparent);
 }
 
 /* Step progress bar */
 .step-progress-bar {
-  height: 2px;
-  background: linear-gradient(90deg, #ff6b00, #ffd166);
-  box-shadow: 0 0 8px rgba(255, 107, 0, 0.5);
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #a695e3, #c9bbf0);
+  box-shadow: 0 0 10px rgba(166, 149, 227, 0.6);
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Animated border gradient */
-@keyframes borderSpin {
-  to { --border-angle: 360deg; }
-}
-
-.animated-border {
-  --border-angle: 0deg;
-  border: 2px solid transparent;
-  background-image:
-    linear-gradient(rgb(15, 15, 26), rgb(15, 15, 26)),
-    conic-gradient(from var(--border-angle), #ff6b00, #ffd166, #ff3011, #ff6b00);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  animation: borderSpin 4s linear infinite;
-}
-
-@property --border-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
 }

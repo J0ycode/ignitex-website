@@ -31,7 +31,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
       size: number; alpha: number; color: string;
     }> = []
 
-    const colors = ['#ff6b00', '#ff8c35', '#ffd166', '#ff3011', '#ffbe00']
+    const colors = ['#c9bbf0', '#a695e3', '#9383cc', '#F4F1FF', '#E2D8FF']
 
     for (let i = 0; i < 80; i++) {
       particles.push({
@@ -115,7 +115,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 1,
-          background: 'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(255,107,0,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(166,149,227,0.12) 0%, transparent 70%)',
         }}
       />
 
@@ -128,42 +128,53 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           transition={{ delay: 0.1 }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
           style={{
-            background: 'rgba(255,107,0,0.1)',
-            border: '1px solid rgba(255,107,0,0.3)',
+            background: 'rgba(166,149,227,0.1)',
+            border: '1px solid rgba(166,149,227,0.3)',
           }}
         >
           <motion.div
             animate={{ scale: [1, 1.3, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-2 h-2 rounded-full bg-ember-500"
+            className="w-2 h-2 rounded-full bg-galaksi-400"
           />
-          <span className="font-mono text-xs text-ember-400 font-medium uppercase tracking-widest">
+          <span className="font-mono text-xs text-galaksi-300 font-medium uppercase tracking-widest">
             Ideathon · 28–29 {serverNow ? serverNow.toLocaleString('default', { month: 'long' }) : ''} 2026
           </span>
         </motion.div>
 
-        {/* Title */}
+        {/* Pre-header Logo */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.7 }}
-          className="mb-4"
+          transition={{ delay: 0.1, duration: 0.6 }}
+          className="flex flex-col items-center justify-center mb-6"
         >
-          <h1 className="font-display font-extrabold leading-none tracking-tight">
-            <span
-              className="block text-white"
-              style={{ fontSize: 'clamp(4rem, 14vw, 9rem)', lineHeight: 1.0 }}
-            >
-              ignite
-              <motion.span
-                className="text-gradient-ember animate-flicker"
-                animate={{ textShadow: ['0 0 20px rgba(255,107,0,0.3)', '0 0 60px rgba(255,107,0,0.8)', '0 0 20px rgba(255,107,0,0.3)'] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                X
-              </motion.span>
-            </span>
-          </h1>
+          <img 
+            src="/src/assets/TXA-logo.png" 
+            alt="TXA" 
+            className="h-16 sm:h-20 object-contain mb-3" 
+            style={{ mixBlendMode: 'screen' }} 
+          />
+          <p className="text-gray-400 text-xs sm:text-sm tracking-[0.2em] uppercase font-medium" style={{ fontFamily: '"Lexend", sans-serif' }}>
+            presents
+          </p>
+        </motion.div>
+
+        {/* Title Image */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={{ delay: 0.2, duration: 0.8, type: 'spring', bounce: 0.4 }}
+          className="flex justify-center mb-4 w-full"
+        >
+          <img 
+            src="/src/assets/IgniteX.png" 
+            alt="IgniteX" 
+            className="w-full max-w-[18rem] sm:max-w-lg md:max-w-2xl px-4 object-contain" 
+            style={{ 
+              filter: 'drop-shadow(0 0 40px rgba(166,149,227,0.4))'
+            }}
+          />
         </motion.div>
 
         {/* Tagline with heartbeat */}
@@ -173,15 +184,15 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           transition={{ delay: 0.5, duration: 0.6 }}
           className="flex items-center justify-center gap-3 mb-10"
         >
-          <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent to-ember-500/50" />
+          <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-transparent to-galaksi-400/50" />
           <motion.p
-            className="font-display text-base sm:text-lg text-gray-300 font-medium"
+            className="font-display text-base sm:text-lg text-galaksi-100 font-medium"
             animate={{ opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
             "Ideas are the pulses of progress"
           </motion.p>
-          <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent to-ember-500/50" />
+          <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-transparent to-galaksi-400/50" />
         </motion.div>
 
         {/* Heartbeat line */}
@@ -219,67 +230,50 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
         >
           {status === 'open' && (
             <>
-              <Link to="/register" className="btn-ember flex items-center gap-2 text-base px-8 py-3.5">
+              <Link to="/register" className="btn-galaksi flex items-center gap-2 text-base px-8 py-3.5">
                 <FiZap className="w-4 h-4" />
                 Register Your Team
                 <FiArrowRight className="w-4 h-4" />
               </Link>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-gray-400 font-mono">
-                  <span className="text-ember-400 font-bold">{teamCount}</span>
-                  <span className="text-gray-500"> / {MAX_TEAMS} teams registered</span>
+                <span className="text-galaksi-200 font-mono">
+                  <span className="text-galaksi-300 font-bold">{teamCount}</span>
+                  <span className="text-galaksi-200"> / {MAX_TEAMS} teams registered</span>
                 </span>
               </div>
             </>
           )}
           {status === 'before_open' && (
-            <div className="flex items-center gap-3 px-6 py-3.5 rounded-lg"
-              style={{ background: 'rgba(255,190,0,0.08)', border: '1px solid rgba(255,190,0,0.2)' }}>
-              <FiCalendar className="text-spark-400 w-4 h-4" />
-              <span className="font-display text-sm text-spark-400 font-medium">
+            <div className="flex items-center gap-3 px-6 py-3.5 rounded-full"
+              style={{ background: 'rgba(201,187,240,0.08)', border: '1px solid rgba(201,187,240,0.2)' }}>
+              <FiCalendar className="text-galaksi-300 w-4 h-4" />
+              <span className="font-display text-sm text-galaksi-300 font-medium">
                 Registration opens {dates?.registrationOpen.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at 12:00 PM
               </span>
             </div>
           )}
           {status === 'full' && (
-            <div className="px-8 py-3.5 rounded-lg text-center"
-              style={{ background: 'rgba(255,48,17,0.1)', border: '1px solid rgba(255,48,17,0.3)' }}>
-              <span className="font-display font-bold text-flame-400">🔥 All 20 slots filled!</span>
-              <p className="text-xs text-gray-400 mt-1">See you at the event on the 28th!</p>
+            <div className="px-8 py-3.5 rounded-full text-center"
+              style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.3)' }}>
+              <span className="font-display font-bold text-galaksi-300">🔥 All 20 slots filled!</span>
+              <p className="text-xs text-galaksi-400 mt-1">See you at the event on the 28th!</p>
             </div>
           )}
           {status === 'closed' && (
-            <div className="px-8 py-3.5 rounded-lg"
+            <div className="px-8 py-3.5 rounded-full"
               style={{ background: 'rgba(100,100,120,0.1)', border: '1px solid rgba(100,100,120,0.2)' }}>
-              <span className="font-display text-gray-400">Registration closed · Event begins soon</span>
+              <span className="font-display text-galaksi-300">Registration closed · Event begins soon</span>
             </div>
           )}
           {(status === 'event_active') && (
-            <div className="px-8 py-3.5 rounded-lg animate-pulse-ember"
-              style={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)' }}>
-              <span className="font-display font-bold text-ember-400">🚀 igniteX is LIVE right now!</span>
+            <div className="px-8 py-3.5 rounded-full animate-pulse-galaksi"
+              style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.4)' }}>
+              <span className="font-display font-bold text-galaksi-300">🚀 igniteX is LIVE right now!</span>
             </div>
           )}
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="flex flex-col items-center gap-1 cursor-pointer"
-            onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            <span className="text-xs text-gray-600 font-mono uppercase tracking-widest">Scroll</span>
-            <div className="w-px h-8 bg-gradient-to-b from-ember-500/50 to-transparent" />
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   )
@@ -313,14 +307,14 @@ function HeartbeatLine() {
       />
       <defs>
         <linearGradient id="hbGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#ff6b00" stopOpacity="0.2" />
-          <stop offset="50%" stopColor="#ff6b00" stopOpacity="1" />
-          <stop offset="100%" stopColor="#ff3011" stopOpacity="0.2" />
+          <stop offset="0%" stopColor="#a695e3" stopOpacity="0.2" />
+          <stop offset="50%" stopColor="#a695e3" stopOpacity="1" />
+          <stop offset="100%" stopColor="#9383cc" stopOpacity="0.2" />
         </linearGradient>
         <linearGradient id="hbGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#ff6b00" stopOpacity="0" />
-          <stop offset="50%" stopColor="#ffd166" stopOpacity="1" />
-          <stop offset="100%" stopColor="#ff6b00" stopOpacity="0" />
+          <stop offset="0%" stopColor="#a695e3" stopOpacity="0" />
+          <stop offset="50%" stopColor="#c9bbf0" stopOpacity="1" />
+          <stop offset="100%" stopColor="#a695e3" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>

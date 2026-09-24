@@ -3,9 +3,7 @@ import { motion } from 'framer-motion'
 import type { TeamFormValues } from './StepTeamDetails'
 import { FiCheck, FiEdit2, FiZap, FiUsers, FiMail, FiPhone, FiBook } from 'react-icons/fi'
 import toast from 'react-hot-toast'
-
-// ── Backend API URL ──────────────────────────────────────────────────────
-const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/register` : 'http://localhost:5000/api/register'
+import { supabase } from '../../lib/supabase'
 
 interface StepReviewProps {
   formData: TeamFormValues
@@ -23,26 +21,42 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
 
     try {
       const registrationId = Math.random().toString(36).substring(2, 10).toUpperCase()
-      
-      const payload = {
-        registrationId,
-        teamName: formData.teamName,
-        members: formData.members,
-        timestamp: new Date().toISOString()
+
+      // ── 1. Insert team row ────────────────────────────────────────────────
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .insert({ registration_id: registrationId, team_name: formData.teamName })
+        .select('id')
+        .single()
+
+      if (teamError) {
+        if (teamError.code === '23505') throw new Error('Team name is already taken')
+        throw new Error(teamError.message)
       }
 
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      })
+      // ── 2. Insert members rows ────────────────────────────────────────────
+      const membersPayload = formData.members.map((m, i) => ({
+        team_id: team.id,
+        name: m.name,
+        email: m.email,
+        phone: m.phone,
+        college: m.college,
+        is_leader: i === 0,
+      }))
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
-        throw new Error(errorData?.error || 'Failed to submit registration')
+      const { error: membersError } = await supabase
+        .from('members')
+        .insert(membersPayload)
+
+      if (membersError) {
+        // Roll back the team row so we don't leave orphaned records
+        await supabase.from('teams').delete().eq('id', team.id)
+        if (membersError.code === '23505') {
+          throw new Error('One or more members are already registered with that email or phone number')
+        }
+        throw new Error(membersError.message)
       }
+
       toast.success('🔥 Team registered successfully!')
       onSuccess(registrationId)
     } catch (err: unknown) {
@@ -70,19 +84,19 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
 
       {/* Team name card */}
       <div className="p-4 rounded-xl mb-4"
-        style={{ background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.2)' }}>
+        style={{ background: 'rgba(166,149,227,0.06)', border: '1px solid rgba(166,149,227,0.2)' }}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-ember-400 uppercase tracking-widest mb-1">Team Name</p>
+            <p className="text-xs font-mono text-galaksi-400 uppercase tracking-widest mb-1">Team Name</p>
             <p className="font-display font-bold text-xl text-white">{teamName}</p>
           </div>
-          <FiZap className="text-ember-500 w-6 h-6" />
+          <FiZap className="text-galaksi-500 w-6 h-6" />
         </div>
       </div>
 
       {/* Members list */}
       <div className="space-y-3 mb-6">
-        <p className="text-xs font-mono text-ember-400 uppercase tracking-widest flex items-center gap-2">
+        <p className="text-xs font-mono text-galaksi-400 uppercase tracking-widest flex items-center gap-2">
           <FiUsers className="w-3 h-3" /> Members ({members.length})
         </p>
         {members.map((member, i) => (
@@ -94,16 +108,16 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
             className="p-4 rounded-xl"
             style={{
               background: 'rgba(22,22,37,0.6)',
-              border: i === 0 ? '1px solid rgba(255,107,0,0.25)' : '1px solid rgba(255,255,255,0.06)',
+              border: i === 0 ? '1px solid rgba(166,149,227,0.25)' : '1px solid rgba(255,255,255,0.06)',
             }}
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{
-                  background: i === 0 ? 'rgba(255,107,0,0.2)' : 'rgba(255,255,255,0.05)',
-                  border: i === 0 ? '1px solid rgba(255,107,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                  background: i === 0 ? 'rgba(166,149,227,0.2)' : 'rgba(255,255,255,0.05)',
+                  border: i === 0 ? '1px solid rgba(166,149,227,0.4)' : '1px solid rgba(255,255,255,0.08)',
                 }}>
-                <span className="text-xs font-bold" style={{ color: i === 0 ? '#ff6b00' : '#6b7280' }}>
+                <span className="text-xs font-bold" style={{ color: i === 0 ? '#a695e3' : '#6b7280' }}>
                   {i === 0 ? '👑' : i + 1}
                 </span>
               </div>
@@ -131,8 +145,8 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="p-4 rounded-xl mb-4 text-sm text-flame-400"
-          style={{ background: 'rgba(255,48,17,0.08)', border: '1px solid rgba(255,48,17,0.2)' }}
+          className="p-4 rounded-xl mb-4 text-sm text-galaksi-400"
+          style={{ background: 'rgba(147,131,204,0.08)', border: '1px solid rgba(147,131,204,0.2)' }}
         >
           {error}
         </motion.div>
@@ -143,7 +157,7 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
         <button
           onClick={onBack}
           disabled={submitting}
-          className="btn-outline-ember flex-1 flex items-center justify-center gap-2"
+          className="btn-outline-galaksi flex-1 flex items-center justify-center gap-2"
         >
           <FiEdit2 className="w-4 h-4" />
           Edit
@@ -153,7 +167,7 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
           disabled={submitting}
           whileHover={{ scale: submitting ? 1 : 1.02 }}
           whileTap={{ scale: submitting ? 1 : 0.97 }}
-          className="btn-ember flex-1 flex items-center justify-center gap-2"
+          className="btn-galaksi flex-1 flex items-center justify-center gap-2"
         >
           {submitting ? (
             <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">

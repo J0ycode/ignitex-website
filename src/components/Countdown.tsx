@@ -9,19 +9,19 @@ interface CountdownProps {
 
 const VARIANT_STYLES = {
   opening: {
-    labelColor: 'text-spark-400',
+    labelColor: 'text-galaksi-400',
     digitGlow: 'border-spark-500/30',
-    unitColor: 'text-spark-400/70',
+    unitColor: 'text-galaksi-400/70',
   },
   closing: {
-    labelColor: 'text-ember-400',
-    digitGlow: 'border-ember-500/30',
-    unitColor: 'text-ember-400/70',
+    labelColor: 'text-galaksi-400',
+    digitGlow: 'border-galaksi-500/30',
+    unitColor: 'text-galaksi-400/70',
   },
   event: {
-    labelColor: 'text-flame-400',
-    digitGlow: 'border-flame-400/30',
-    unitColor: 'text-flame-400/70',
+    labelColor: 'text-galaksi-400',
+    digitGlow: 'border-galaksi-400/30',
+    unitColor: 'text-galaksi-400/70',
   },
 }
 
@@ -87,12 +87,12 @@ function Separator() {
       <motion.div
         animate={{ opacity: [1, 0.2, 1] }}
         transition={{ duration: 1, repeat: Infinity }}
-        className="w-1.5 h-1.5 rounded-full bg-ember-500"
+        className="w-1.5 h-1.5 rounded-full bg-galaksi-500"
       />
       <motion.div
         animate={{ opacity: [1, 0.2, 1] }}
         transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
-        className="w-1.5 h-1.5 rounded-full bg-ember-500"
+        className="w-1.5 h-1.5 rounded-full bg-galaksi-500"
       />
     </div>
   )

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { RegistrationStatus } from '../lib/registrationStatus'
 import { computeStatus } from '../lib/registrationStatus'
+import { supabase } from '../lib/supabase'
 
 interface UseRegistrationStatusReturn {
   status: RegistrationStatus | null
@@ -14,31 +15,34 @@ interface UseRegistrationStatusReturn {
 export function useRegistrationStatus(): UseRegistrationStatusReturn {
   const [status, setStatus]       = useState<RegistrationStatus | null>(null)
   const [teamCount, setTeamCount] = useState<number>(0)
-  const [serverNow, setServerNow] = useState<Date | null>(new Date()) 
-  const [loading, setLoading]     = useState(true) 
+  const [serverNow, setServerNow] = useState<Date | null>(new Date())
+  const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
 
-  const syncServerTime = async () => {
+  const syncTeamCount = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/api/status`)
-      if (res.ok) {
-        const data = await res.json()
-        setTeamCount(data.teamCount || 0)
-      }
+      const { count, error: sbError } = await supabase
+        .from('teams')
+        .select('*', { count: 'exact', head: true })
+
+      if (sbError) throw sbError
+      setTeamCount(count ?? 0)
+      setError(null)
     } catch (err) {
-      console.warn('Could not fetch team count from backend', err)
+      console.warn('Could not fetch team count from Supabase', err)
       setError('Could not connect to server')
     }
-    
-    // No backend time API yet, just use local time
+
+    // Use client time (no separate time API needed)
     setServerNow(new Date())
   }
 
   // ── Client-side clock tick ─────────────────────────────────────────────────
   useEffect(() => {
-    syncServerTime().then(() => {
-      setLoading(false)
+    let isMounted = true
+
+    syncTeamCount().then(() => {
+      if (isMounted) setLoading(false)
     })
 
     const tick = setInterval(() => {
@@ -46,11 +50,14 @@ export function useRegistrationStatus(): UseRegistrationStatusReturn {
       setServerNow(now)
       setStatus(computeStatus(now, teamCount))
     }, 1000)
-    
+
     // Initial compute
     setStatus(computeStatus(new Date(), teamCount))
-    
-    return () => clearInterval(tick)
+
+    return () => {
+      isMounted = false
+      clearInterval(tick)
+    }
   }, [teamCount])
 
   return {
@@ -59,6 +66,6 @@ export function useRegistrationStatus(): UseRegistrationStatusReturn {
     serverNow,
     loading,
     error,
-    refresh: syncServerTime,
+    refresh: syncTeamCount,
   }
 }

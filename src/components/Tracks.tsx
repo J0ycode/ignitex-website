@@ -9,28 +9,28 @@ const TRACKS = [
     title: 'AI & Machine Learning',
     description: 'Build intelligent systems that learn, adapt, and transform industries. From LLM applications to computer vision breakthroughs.',
     tags: ['LLMs', 'CV', 'MLOps'],
-    color: '#ff6b00',
+    color: '#a695e3',
   },
   {
     icon: FiGlobe,
     title: 'Web3 & Decentralized',
     description: 'Architect the decentralized future — DAOs, DeFi primitives, NFT utilities, and on-chain governance systems.',
     tags: ['Solidity', 'DeFi', 'DAOs'],
-    color: '#ffd166',
+    color: '#c9bbf0',
   },
   {
     icon: FiShield,
     title: 'Cybersecurity',
     description: 'Hack to protect. Build threat detection, zero-trust systems, or open-source security tooling that matters.',
     tags: ['Pen Testing', 'Zero Trust', 'SIEM'],
-    color: '#ff3011',
+    color: '#9383cc',
   },
   {
     icon: FiTrendingUp,
     title: 'FinTech & Commerce',
     description: 'Reimagine finance — payment rails, credit scoring, embedded finance, or novel ways to democratize capital.',
     tags: ['Payments', 'Credit', 'Open Banking'],
-    color: '#ff8c35',
+    color: '#a695e3',
   },
   {
     icon: FiHeart,
@@ -44,7 +44,7 @@ const TRACKS = [
     title: 'DevTools & OSS',
     description: 'Build tools for builders. Developer productivity, open-source infra, CLI utilities, or observability platforms.',
     tags: ['DevEx', 'Infra', 'OSS'],
-    color: '#ff6b00',
+    color: '#a695e3',
   },
 ]
 
@@ -72,11 +72,11 @@ export default function Tracks() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="font-mono text-xs text-ember-400 uppercase tracking-widest mb-3 block">
+          <span className="font-mono text-xs text-galaksi-400 uppercase tracking-widest mb-3 block">
             // Domains & Themes
           </span>
           <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white mb-4">
-            Choose Your <span className="text-gradient-ember">Track</span>
+            Choose Your <span className="text-gradient-galaksi">Track</span>
           </h2>
           <p className="text-gray-400 max-w-lg mx-auto font-body">
             Every great innovation starts with a problem worth solving. Pick your domain, gather your team, and ignite something extraordinary.
@@ -128,7 +128,7 @@ function TrackCard({ track }: { track: typeof TRACKS[0] }) {
       >
         <Icon style={{ color: track.color }} className="w-5 h-5" />
       </div>
-      <h3 className="font-display font-bold text-lg text-white mb-2 group-hover:text-ember-300 transition-colors">
+      <h3 className="font-display font-bold text-lg text-white mb-2 group-hover:text-galaksi-300 transition-colors">
         {track.title}
       </h3>
       <p className="text-gray-500 text-sm leading-relaxed mb-4">

@@ -25,7 +25,7 @@ export default function RegisterPage() {
   }
 
   const handleRegistrationSuccess = (registrationId: string) => {
-    navigate(`/confirmation?id=${registrationId}&team=${encodeURIComponent(formData?.teamName ?? '')}`)
+    navigate(`/payment?id=${registrationId}&team=${encodeURIComponent(formData?.teamName ?? '')}`)
   }
 
   const dates = serverNow ? getRegistrationDates(serverNow) : null
@@ -38,10 +38,10 @@ export default function RegisterPage() {
   if (status === 'before_open') {
     return (
       <GateScreen
-        icon={<FiClock className="w-8 h-8 text-spark-400" />}
+        icon={<FiClock className="w-8 h-8 text-galaksi-400" />}
         title="Not Open Yet"
         subtitle={`Registration opens on the 25th at 12:00 PM`}
-        accentColor="#ffd166"
+        accentColor="#c9bbf0"
       >
         {dates && (
           <Countdown
@@ -57,10 +57,10 @@ export default function RegisterPage() {
   if (status === 'full') {
     return (
       <GateScreen
-        icon={<FiAlertOctagon className="w-8 h-8 text-flame-400" />}
+        icon={<FiAlertOctagon className="w-8 h-8 text-galaksi-400" />}
         title="Registration Full"
         subtitle={`All ${MAX_TEAMS} teams have registered. We'll see you at the event!`}
-        accentColor="#ff3011"
+        accentColor="#9383cc"
       >
         <div className="flex flex-col items-center gap-2">
           <p className="font-display text-4xl font-black text-white">{teamCount} / {MAX_TEAMS}</p>
@@ -96,7 +96,7 @@ export default function RegisterPage() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-2 mb-8 px-4 py-2 rounded-full"
-        style={{ background: 'rgba(22,22,37,0.8)', border: '1px solid rgba(255,107,0,0.15)' }}
+        style={{ background: 'rgba(22,22,37,0.8)', border: '1px solid rgba(166,149,227,0.15)' }}
       >
         <motion.div
           animate={{ scale: [1, 1.3, 1] }}
@@ -104,7 +104,7 @@ export default function RegisterPage() {
           className="w-2 h-2 rounded-full bg-green-400"
         />
         <span className="font-mono text-xs text-gray-400">
-          <span className="text-ember-400 font-bold">{teamCount}</span>
+          <span className="text-galaksi-400 font-bold">{teamCount}</span>
           <span> / {MAX_TEAMS} teams registered</span>
         </span>
         {dates && (
@@ -127,10 +127,10 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #ff6b00, #ff3011)' }}>
+              style={{ background: 'linear-gradient(135deg, #a695e3, #9383cc)' }}>
               <FiZap className="text-white w-4 h-4" />
             </div>
-            <span className="font-display font-bold text-xl text-white">ignite<span className="text-gradient-ember">X</span></span>
+            <span className="font-display font-bold text-xl text-white">ignite<span className="text-gradient-galaksi">X</span></span>
           </div>
           <h1 className="font-display font-extrabold text-3xl text-white">Register Your Team</h1>
           <p className="text-gray-500 text-sm mt-1">{2 - step + 1} step{2 - step + 1 !== 1 ? 's' : ''} remaining</p>
@@ -198,7 +198,7 @@ function GateScreen({
           <p className="text-gray-500 text-sm">{subtitle}</p>
         </div>
         {children}
-        <a href="/" className="inline-block text-xs text-gray-600 hover:text-ember-400 transition-colors">
+        <a href="/" className="inline-block text-xs text-gray-600 hover:text-galaksi-400 transition-colors">
           ← Back to home
         </a>
       </motion.div>
@@ -213,7 +213,7 @@ function LoadingGate() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 rounded-full border-2 border-ember-500/30 border-t-ember-500"
+          className="w-10 h-10 rounded-full border-2 border-galaksi-500/30 border-t-galaksi-500"
         />
         <p className="font-mono text-sm text-gray-600">Checking registration status…</p>
       </div>

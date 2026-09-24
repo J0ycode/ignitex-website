@@ -45,17 +45,17 @@ export default function ConfirmationPage() {
               animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
               transition={{ duration: 2, repeat: Infinity }}
               className="absolute inset-0 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(255,107,0,0.3) 0%, transparent 70%)' }}
+              style={{ background: 'radial-gradient(circle, rgba(166,149,227,0.3) 0%, transparent 70%)' }}
             />
             <div
               className="w-24 h-24 rounded-full flex items-center justify-center relative z-10"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,48,17,0.1))',
-                border: '2px solid rgba(255,107,0,0.5)',
-                boxShadow: '0 0 40px rgba(255,107,0,0.3)',
+                background: 'linear-gradient(135deg, rgba(166,149,227,0.2), rgba(147,131,204,0.1))',
+                border: '2px solid rgba(166,149,227,0.5)',
+                boxShadow: '0 0 40px rgba(166,149,227,0.3)',
               }}
             >
-              <FiCheckCircle className="w-10 h-10 text-ember-400" />
+              <FiCheckCircle className="w-10 h-10 text-galaksi-400" />
             </div>
           </div>
         </motion.div>
@@ -63,7 +63,7 @@ export default function ConfirmationPage() {
         {/* Title */}
         <motion.div variants={childVariants}>
           <h1 className="font-display font-extrabold text-4xl text-white mb-2">
-            You're <span className="text-gradient-ember">Ignited!</span>
+            You're <span className="text-gradient-galaksi">Ignited!</span>
           </h1>
           <p className="text-gray-400">
             Team <strong className="text-white">"{teamName}"</strong> is officially registered for igniteX.
@@ -76,10 +76,10 @@ export default function ConfirmationPage() {
           className="p-6 rounded-2xl"
           style={{
             background: 'rgba(22,22,37,0.8)',
-            border: '1px solid rgba(255,107,0,0.25)',
+            border: '1px solid rgba(166,149,227,0.25)',
           }}
         >
-          <p className="text-xs font-mono text-ember-400 uppercase tracking-widest mb-2">
+          <p className="text-xs font-mono text-galaksi-400 uppercase tracking-widest mb-2">
             Registration ID
           </p>
           <div className="flex items-center justify-center gap-3">
@@ -87,7 +87,7 @@ export default function ConfirmationPage() {
               {registrationId}
             </span>
             <button onClick={copyId} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
-              <FiCopy className="w-4 h-4 text-gray-500 hover:text-ember-400 transition-colors" />
+              <FiCopy className="w-4 h-4 text-gray-500 hover:text-galaksi-400 transition-colors" />
             </button>
           </div>
           <p className="text-xs text-gray-600 mt-3">
@@ -99,9 +99,9 @@ export default function ConfirmationPage() {
         <motion.div variants={childVariants} className="space-y-3">
           <div
             className="flex items-center gap-3 p-4 rounded-xl text-left"
-            style={{ background: 'rgba(255,107,0,0.05)', border: '1px solid rgba(255,107,0,0.1)' }}
+            style={{ background: 'rgba(166,149,227,0.05)', border: '1px solid rgba(166,149,227,0.1)' }}
           >
-            <FiCalendar className="text-ember-400 w-5 h-5 flex-shrink-0" />
+            <FiCalendar className="text-galaksi-400 w-5 h-5 flex-shrink-0" />
             <div>
               <p className="font-display font-semibold text-white text-sm">Event Dates</p>
               <p className="text-gray-500 text-xs">28th & 29th of this month · 9:00 AM onwards</p>
@@ -114,7 +114,7 @@ export default function ConfirmationPage() {
 
         {/* Actions */}
         <motion.div variants={childVariants} className="flex gap-3 justify-center">
-          <Link to="/" className="btn-outline-ember flex items-center gap-2">
+          <Link to="/" className="btn-outline-galaksi flex items-center gap-2">
             <FiHome className="w-4 h-4" />
             Back to Home
           </Link>
@@ -133,9 +133,9 @@ export default function ConfirmationPage() {
             />
             <defs>
               <linearGradient id="confGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#ff6b00" stopOpacity="0" />
-                <stop offset="50%" stopColor="#ffd166" stopOpacity="1" />
-                <stop offset="100%" stopColor="#ff3011" stopOpacity="0" />
+                <stop offset="0%" stopColor="#a695e3" stopOpacity="0" />
+                <stop offset="50%" stopColor="#c9bbf0" stopOpacity="1" />
+                <stop offset="100%" stopColor="#9383cc" stopOpacity="0" />
               </linearGradient>
             </defs>
           </svg>

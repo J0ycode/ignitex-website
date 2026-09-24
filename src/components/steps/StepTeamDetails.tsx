@@ -80,21 +80,21 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
       <form onSubmit={handleSubmit(onNext)} className="space-y-6">
         {/* Team name */}
         <div>
-          <label className="label-ember">Team Name <span className="text-ember-500">*</span></label>
+          <label className="label-galaksi">Team Name <span className="text-galaksi-500">*</span></label>
           <input
             {...register('teamName')}
             placeholder="e.g. NeuralNinjas"
-            className={`input-ember ${errors.teamName ? 'error' : ''}`}
+            className={`input-galaksi ${errors.teamName ? 'error' : ''}`}
           />
           {errors.teamName && (
-            <p className="text-flame-400 text-xs mt-1">{errors.teamName.message}</p>
+            <p className="text-galaksi-400 text-xs mt-1">{errors.teamName.message}</p>
           )}
         </div>
 
         {/* Members */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="label-ember mb-0">Team Members</label>
+            <label className="label-galaksi mb-0">Team Members</label>
             <span className="text-xs font-mono text-gray-500">{fields.length} / 4</span>
           </div>
 
@@ -110,21 +110,21 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                 style={{
                   background: 'rgba(22,22,37,0.6)',
                   border: index === 0
-                    ? '1px solid rgba(255,107,0,0.35)'
-                    : '1px solid rgba(255,107,0,0.12)',
+                    ? '1px solid rgba(166,149,227,0.35)'
+                    : '1px solid rgba(166,149,227,0.12)',
                 }}
               >
                 {/* Member header */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-display text-sm font-semibold"
-                    style={{ color: index === 0 ? '#ff6b00' : '#9ca3af' }}>
+                    style={{ color: index === 0 ? '#a695e3' : '#9ca3af' }}>
                     {index === 0 ? '👑 Team Leader (You)' : `Member ${index + 1}`}
                   </span>
                   {index > 0 && (
                     <button
                       type="button"
                       onClick={() => remove(index)}
-                      className="text-gray-600 hover:text-flame-400 transition-colors p-1"
+                      className="text-gray-600 hover:text-galaksi-400 transition-colors p-1"
                     >
                       <FiTrash2 className="w-4 h-4" />
                     </button>
@@ -139,11 +139,11 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <input
                         {...register(`members.${index}.name`)}
                         placeholder="Full Name"
-                        className={`input-ember pl-10 ${errors.members?.[index]?.name ? 'error' : ''}`}
+                        className={`input-galaksi pl-10 ${errors.members?.[index]?.name ? 'error' : ''}`}
                       />
                     </div>
                     {errors.members?.[index]?.name && (
-                      <p className="text-flame-400 text-xs mt-1">{errors.members[index].name?.message}</p>
+                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].name?.message}</p>
                     )}
                   </div>
 
@@ -154,11 +154,11 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <input
                         {...register(`members.${index}.email`)}
                         placeholder="Email"
-                        className={`input-ember pl-10 ${errors.members?.[index]?.email ? 'error' : ''}`}
+                        className={`input-galaksi pl-10 ${errors.members?.[index]?.email ? 'error' : ''}`}
                       />
                     </div>
                     {errors.members?.[index]?.email && (
-                      <p className="text-flame-400 text-xs mt-1">{errors.members[index].email?.message}</p>
+                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].email?.message}</p>
                     )}
                   </div>
 
@@ -170,11 +170,11 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                         {...register(`members.${index}.phone`)}
                         placeholder="10-digit Mobile"
                         maxLength={10}
-                        className={`input-ember pl-10 ${errors.members?.[index]?.phone ? 'error' : ''}`}
+                        className={`input-galaksi pl-10 ${errors.members?.[index]?.phone ? 'error' : ''}`}
                       />
                     </div>
                     {errors.members?.[index]?.phone && (
-                      <p className="text-flame-400 text-xs mt-1">{errors.members[index].phone?.message}</p>
+                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].phone?.message}</p>
                     )}
                   </div>
 
@@ -185,11 +185,11 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <input
                         {...register(`members.${index}.college`)}
                         placeholder="College / Institution"
-                        className={`input-ember pl-10 ${errors.members?.[index]?.college ? 'error' : ''}`}
+                        className={`input-galaksi pl-10 ${errors.members?.[index]?.college ? 'error' : ''}`}
                       />
                     </div>
                     {errors.members?.[index]?.college && (
-                      <p className="text-flame-400 text-xs mt-1">{errors.members[index].college?.message}</p>
+                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].college?.message}</p>
                     )}
                   </div>
 
@@ -201,10 +201,10 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
 
           {/* Array-level error */}
           {errors.members?.root && (
-            <p className="text-flame-400 text-xs mt-1">{errors.members.root.message}</p>
+            <p className="text-galaksi-400 text-xs mt-1">{errors.members.root.message}</p>
           )}
           {typeof errors.members?.message === 'string' && (
-            <p className="text-flame-400 text-xs mt-1">{errors.members.message}</p>
+            <p className="text-galaksi-400 text-xs mt-1">{errors.members.message}</p>
           )}
 
           {/* Add member button */}
@@ -216,9 +216,9 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
               onClick={() => append(defaultMember(false))}
               className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-display font-medium transition-all duration-200"
               style={{
-                border: '1px dashed rgba(255,107,0,0.3)',
-                color: 'rgba(255,107,0,0.7)',
-                background: 'rgba(255,107,0,0.04)',
+                border: '1px dashed rgba(166,149,227,0.3)',
+                color: 'rgba(166,149,227,0.7)',
+                background: 'rgba(166,149,227,0.04)',
               }}
             >
               <FiPlus className="w-4 h-4" />
@@ -231,7 +231,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
           type="submit"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="btn-ember w-full"
+          className="btn-galaksi w-full"
         >
           Review & Submit →
         </motion.button>
