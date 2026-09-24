@@ -253,7 +253,7 @@ export default function PaymentPage() {
                   className="btn-galaksi w-full flex items-center justify-center gap-2"
                   style={{ background: 'transparent', border: '1px solid rgba(166,149,227,0.5)', color: '#fff' }}
                 >
-                  Skip & Go to Dashboard
+                  Tickets Downloaded
                 </button>
               </motion.div>
             )}
