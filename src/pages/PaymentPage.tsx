@@ -208,9 +208,12 @@ export default function PaymentPage() {
                             const { error: uploadErr } = await supabase.storage
                               .from('tickets')
                               .upload(fileName, ticketFile, { upsert: true })
-                            
                             if (!uploadErr) {
-                              await supabase.from('teams').update({ payment_status: 'ticket_uploaded' }).eq('id', registrationId)
+                              const { data: { publicUrl } } = supabase.storage.from('tickets').getPublicUrl(fileName)
+                              await supabase.from('teams').update({ 
+                                payment_status: 'ticket_uploaded',
+                                payment_screenshot_url: publicUrl
+                              }).eq('registration_id', registrationId)
                             }
                           }
                         } catch (e) {
