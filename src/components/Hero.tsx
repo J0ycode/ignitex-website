@@ -5,6 +5,8 @@ import { FiZap, FiArrowRight, FiCalendar } from 'react-icons/fi'
 import Countdown from './Countdown'
 import type { RegistrationStatus } from '../lib/registrationStatus'
 import { getRegistrationDates, MAX_TEAMS } from '../lib/registrationStatus'
+import txaLogo from '../assets/TXA-logo.png'
+import ignitexLogo from '../assets/IgniteX.png'
 
 interface HeroProps {
   status: RegistrationStatus | null
@@ -150,7 +152,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           className="flex flex-col items-center justify-center mb-6"
         >
           <img 
-            src="/src/assets/TXA-logo.png" 
+            src={txaLogo} 
             alt="TXA" 
             className="h-16 sm:h-20 object-contain mb-3" 
             style={{ mixBlendMode: 'screen' }} 
@@ -168,7 +170,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           className="flex justify-center mb-4 w-full"
         >
           <img 
-            src="/src/assets/IgniteX.png" 
+            src={ignitexLogo} 
             alt="IgniteX" 
             className="w-full max-w-[18rem] sm:max-w-lg md:max-w-2xl px-4 object-contain" 
             style={{ 

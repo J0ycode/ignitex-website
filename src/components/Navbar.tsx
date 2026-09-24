@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import logo from '../assets/IgniteX.png'
 
 export default function Navbar() {
   const location = useLocation()
@@ -22,7 +23,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
           <img 
-            src="/src/assets/IgniteX.png" 
+            src={logo} 
             alt="IgniteX" 
             className="h-6 sm:h-8 object-contain" 
             style={{ filter: 'drop-shadow(0 0 10px rgba(166,149,227,0.3))' }}
