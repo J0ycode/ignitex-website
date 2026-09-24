@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { FiZap, FiAlertCircle } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import KonfHubWidget from '../components/KonfHubWidget'
+import gpayQr from '../assets/gpay.jpeg'
 
 export default function PaymentPage() {
   const [params] = useSearchParams()
@@ -132,8 +133,8 @@ export default function PaymentPage() {
           </h1>
           <p className="text-gray-500 text-sm">
             {phase === 'loading' && 'Setting up payment gateway'}
-            {phase === 'ready_to_pay' && !isPaymentDone && 'Complete your payment via KonfHub below'}
-            {phase === 'ready_to_pay' && isPaymentDone && 'Upload your KonfHub ticket below'}
+            {phase === 'ready_to_pay' && !isPaymentDone && 'Scan the QR code or click to pay via UPI'}
+            {phase === 'ready_to_pay' && isPaymentDone && 'Download your ticket from KonfHub'}
           </p>
         </div>
 
@@ -159,75 +160,101 @@ export default function PaymentPage() {
           >
             <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">Amount</span>
             <span className="font-display font-black text-2xl text-white">
-              <span className="text-galaksi-400">KonfHub Checkout</span>
+              <span className="text-galaksi-400">₹100</span>
             </span>
           </div>
         </motion.div>
 
         {phase === 'ready_to_pay' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
-            <div onClickCapture={() => setIsPaymentDone(true)}>
-              <KonfHubWidget onPaymentComplete={() => setIsPaymentDone(true)} />
-            </div>
-            
-            {isPaymentDone && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <p className="text-sm text-gray-400 mb-3">
-                  Awesome! Now just upload your KonfHub ticket to confirm registration.
+            {!isPaymentDone ? (
+              <div className="flex flex-col items-center">
+                <a href="upi://pay?pa=joyel@me@okaxis&pn=IgniteX&am=100&cu=INR" className="block text-center cursor-pointer hover:scale-105 transition-transform">
+                  <img src={gpayQr} alt="GPay QR Code" className="w-48 h-48 rounded-xl border-2 border-galaksi-500 shadow-[0_0_20px_rgba(166,149,227,0.3)] mb-4" />
+                </a>
+                <p className="text-sm text-gray-400 mb-1">Click the QR or pay to UPI ID:</p>
+                <a href="upi://pay?pa=joyel@me@okaxis&pn=IgniteX&am=100&cu=INR" className="font-mono text-galaksi-400 font-bold mb-6 hover:underline">
+                  joyel@me@okaxis
+                </a>
+
+                <div className="w-full mt-4 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <p className="text-sm text-gray-400 mb-3 text-left">
+                    After completing the ₹100 payment, upload your payment screenshot below.
+                  </p>
+                  
+                  <div className="mb-4">
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setTicketFile(e.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-galaksi-500 file:text-white
+                        hover:file:bg-galaksi-600
+                        cursor-pointer"
+                    />
+                  </div>
+
+                  {ticketFile && (
+                    <button
+                      onClick={async () => {
+                        setIsUploading(true)
+                        try {
+                          if (registrationId && ticketFile) {
+                            const fileExt = ticketFile.name.split('.').pop()
+                            const fileName = `${registrationId}.${fileExt}`
+                            const { error: uploadErr } = await supabase.storage
+                              .from('tickets')
+                              .upload(fileName, ticketFile, { upsert: true })
+                            
+                            if (!uploadErr) {
+                              await supabase.from('teams').update({ payment_status: 'ticket_uploaded' }).eq('id', registrationId)
+                            }
+                          }
+                        } catch (e) {
+                          console.error("Upload non-fatal error:", e)
+                        }
+
+                        // Immediately transition to the KonfHub ticket download screen
+                        setIsUploading(false)
+                        setIsPaymentDone(true)
+                      }}
+                      disabled={isUploading}
+                      className="btn-galaksi w-full flex items-center justify-center gap-2"
+                      style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.3)', color: '#fff' }}
+                    >
+                      {isUploading ? 'Uploading Screenshot...' : 'Confirm Payment'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
+                <p className="text-md text-white font-semibold mb-2 text-center">
+                  Screenshot Uploaded Successfully! 🎉
+                </p>
+                <p className="text-sm text-gray-400 mb-6 text-center">
+                  Please use the KonfHub button below to download your official team ticket.
                 </p>
                 
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={(e) => setTicketFile(e.target.files?.[0] || null)}
-                    className="block w-full text-sm text-gray-400
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-galaksi-500 file:text-white
-                      hover:file:bg-galaksi-600
-                      cursor-pointer"
-                  />
+                <div className="mb-8">
+                  <KonfHubWidget />
                 </div>
-
-                {ticketFile && (
-                  <button
-                    onClick={async () => {
-                      setIsUploading(true)
-                      try {
-                        // Attempt to upload to Supabase storage if it exists, otherwise just redirect
-                        // We will use a bucket named 'tickets'. If it fails, we still allow them to pass (fallback).
-                        if (registrationId && ticketFile) {
-                          const fileExt = ticketFile.name.split('.').pop()
-                          const fileName = `${registrationId}.${fileExt}`
-                          const { error: uploadErr } = await supabase.storage
-                            .from('tickets')
-                            .upload(fileName, ticketFile, { upsert: true })
-                          
-                          if (!uploadErr) {
-                            // Update teams table to mark ticket uploaded
-                            await supabase.from('teams').update({ payment_status: 'ticket_uploaded' }).eq('id', registrationId)
-                          }
-                        }
-                      } catch (e) {
-                        console.error("Upload non-fatal error:", e)
-                      }
-
-                      setTimeout(() => {
-                        const params = new URLSearchParams(window.location.search)
-                        const regId = params.get('id') || 'unknown'
-                        const team = params.get('team') || 'Your Team'
-                        window.location.href = `/confirmation?id=${regId}&team=${encodeURIComponent(team)}`
-                      }, 10000)
-                    }}
-                    disabled={isUploading}
-                    className="btn-galaksi w-full flex items-center justify-center gap-2"
-                    style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.3)', color: '#fff' }}
-                  >
-                    {isUploading ? 'Finalizing Registration...' : 'Confirm Registration'}
-                  </button>
-                )}
+                
+                <button
+                  onClick={() => {
+                    const params = new URLSearchParams(window.location.search)
+                    const regId = params.get('id') || 'unknown'
+                    const team = params.get('team') || 'Your Team'
+                    window.location.href = `/confirmation?id=${regId}&team=${encodeURIComponent(team)}`
+                  }}
+                  className="btn-galaksi w-full flex items-center justify-center gap-2"
+                  style={{ background: 'transparent', border: '1px solid rgba(166,149,227,0.5)', color: '#fff' }}
+                >
+                  Skip & Go to Dashboard
+                </button>
               </motion.div>
             )}
           </motion.div>
