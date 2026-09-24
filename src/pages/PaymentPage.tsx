@@ -207,12 +207,22 @@ export default function PaymentPage() {
                             const { error: uploadErr } = await supabase.storage
                               .from('tickets')
                               .upload(fileName, ticketFile, { upsert: true })
-                            if (!uploadErr) {
-                              const { data: { publicUrl } } = supabase.storage.from('tickets').getPublicUrl(fileName)
-                              await supabase.from('teams').update({ 
-                                payment_status: 'ticket_uploaded',
-                                payment_screenshot_url: publicUrl
-                              }).eq('registration_id', registrationId)
+                            if (uploadErr) {
+                              alert(`Upload Failed: ${uploadErr.message}. Please check your Supabase Storage bucket permissions.`)
+                              setIsUploading(false)
+                              return
+                            }
+                            
+                            const { data: { publicUrl } } = supabase.storage.from('tickets').getPublicUrl(fileName)
+                            const { error: updateErr } = await supabase.from('teams').update({ 
+                              payment_status: 'ticket_uploaded',
+                              payment_screenshot_url: publicUrl
+                            }).eq('registration_id', registrationId)
+
+                            if (updateErr) {
+                              alert(`Database Update Failed: ${updateErr.message}`)
+                              setIsUploading(false)
+                              return
                             }
                           }
                         } catch (e) {
