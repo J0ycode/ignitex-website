@@ -167,16 +167,19 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
           animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
           transition={{ delay: 0.2, duration: 0.8, type: 'spring', bounce: 0.4 }}
-          className="flex justify-center mb-4 w-full"
+          className="flex flex-col items-center justify-center mb-4 w-full"
         >
           <img 
             src={ignitexLogo} 
             alt="IgniteX" 
-            className="w-full max-w-[18rem] sm:max-w-lg md:max-w-2xl px-4 object-contain" 
+            className="w-full max-w-[18rem] sm:max-w-lg md:max-w-2xl px-4 object-contain mb-2" 
             style={{ 
               filter: 'drop-shadow(0 0 40px rgba(166,149,227,0.4))'
             }}
           />
+          <span className="text-xl sm:text-2xl font-bold tracking-[0.3em] uppercase text-galaksi-200 mt-2" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+            Ideathon
+          </span>
         </motion.div>
 
         {/* Tagline with heartbeat */}
