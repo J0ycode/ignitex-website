@@ -169,11 +169,11 @@ export default function PaymentPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4">
             {!isPaymentDone ? (
               <div className="flex flex-col items-center">
-                <a href="upi://pay?pa=joyel@me@okaxis&pn=IgniteX&am=100&cu=INR" className="block text-center cursor-pointer hover:scale-105 transition-transform">
+                <a href="tez://upi/pay?pa=joyel@me@okaxis&pn=IgniteX&am=100&cu=INR" className="block text-center cursor-pointer hover:scale-105 transition-transform">
                   <img src={gpayQr} alt="GPay QR Code" className="w-48 h-48 rounded-xl border-2 border-galaksi-500 shadow-[0_0_20px_rgba(166,149,227,0.3)] mb-4" />
                 </a>
                 <p className="text-sm text-gray-400 mb-1">Click the QR or pay to UPI ID:</p>
-                <a href="upi://pay?pa=joyel@me@okaxis&pn=IgniteX&am=100&cu=INR" className="font-mono text-galaksi-400 font-bold mb-6 hover:underline">
+                <a href="tez://upi/pay?pa=joyel@me@okaxis&pn=IgniteX&am=100&cu=INR" className="font-mono text-galaksi-400 font-bold mb-6 hover:underline">
                   joyel@me@okaxis
                 </a>
 
