@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import logo from '../assets/IgniteX.png'
+import logo from '../assets/IngniteX.png'
 
 export default function Navbar() {
   const location = useLocation()

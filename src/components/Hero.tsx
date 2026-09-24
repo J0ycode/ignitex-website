@@ -6,7 +6,7 @@ import Countdown from './Countdown'
 import type { RegistrationStatus } from '../lib/registrationStatus'
 import { getRegistrationDates, MAX_TEAMS } from '../lib/registrationStatus'
 import txaLogo from '../assets/TXA-logo.png'
-import ignitexLogo from '../assets/IgniteX.png'
+import ignitexLogo from '../assets/IngniteX.png'
 
 interface HeroProps {
   status: RegistrationStatus | null
