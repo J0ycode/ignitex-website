@@ -5,7 +5,8 @@ import logo from '../assets/IngniteX.png'
 
 export default function Navbar() {
   const location = useLocation()
-  const isRegisterPage = location.pathname === '/register'
+  // Hide the Register CTA where it's redundant or out of place
+  const isRegisterPage = location.pathname === '/register' || location.pathname === '/admin'
 
   return (
     <motion.nav

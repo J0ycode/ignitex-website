@@ -38,10 +38,10 @@ function DigitCard({ value, unit, variant = 'opening' }: { value: number; unit: 
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
           exit={{ opacity: 0, y: 8, rotateX: 90 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className={`digit-card w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center ${styles.digitGlow}`}
+          className={`digit-card w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center ${styles.digitGlow}`}
           style={{ perspective: '400px' }}
         >
-          <span className="font-mono font-bold text-2xl sm:text-3xl text-white">
+          <span className="font-mono font-bold text-xl sm:text-3xl text-white">
             {display}
           </span>
         </motion.div>
@@ -68,7 +68,8 @@ export default function Countdown({ targetDate, label, variant = 'opening' }: Co
       <p className={`font-display text-sm font-semibold uppercase tracking-widest ${styles.labelColor}`}>
         {label}
       </p>
-      <div className="flex items-center gap-3 sm:gap-4">
+      {/* 4×56px + 3×(6px+2×8px) ≈ 290px — fits a 320px screen with gutters */}
+      <div className="flex items-center gap-2 sm:gap-4">
         <DigitCard value={days} unit="Days" variant={variant} />
         <Separator />
         <DigitCard value={hours} unit="Hours" variant={variant} />

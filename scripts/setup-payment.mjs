@@ -12,18 +12,9 @@ const sql = `
 alter table teams add column if not exists payment_status text not null default 'pending';
 alter table teams add column if not exists payment_txn_id text;
 alter table teams add column if not exists payment_initiated_at timestamptz;
-
-do $$
-begin
-  if not exists (
-    select 1 from pg_policies
-    where tablename = 'teams' and policyname = 'allow_public_update_teams'
-  ) then
-    execute $p$create policy "allow_public_update_teams" on teams for update using (true)$p$;
-  end if;
-end
-$$;
 `
+// NOTE: do NOT add a public UPDATE policy on teams. Payment updates go through
+// the submit_payment() RPC — see supabase/migrations/*_lockdown_registration.sql
 
 const res = await fetch(
   'https://api.supabase.com/v1/projects/yufgcqknxdnxrtvwiwfz/database/query',
@@ -67,6 +58,11 @@ for (const fn of ['ekqr-create-order', 'ekqr-check-order']) {
 }
 
 // ── Set EKQR_API_KEY secret ───────────────────────────────────────────────────
+const EKQR_API_KEY = process.env.EKQR_API_KEY
+if (!EKQR_API_KEY) {
+  console.error('❌  Set EKQR_API_KEY in your environment (never commit it).')
+  process.exit(1)
+}
 const secretRes = await fetch(
   'https://api.supabase.com/v1/projects/yufgcqknxdnxrtvwiwfz/secrets',
   {
@@ -75,7 +71,7 @@ const secretRes = await fetch(
       Authorization: `Bearer ${PAT}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify([{ name: 'EKQR_API_KEY', value: '12a08a7d-f910-4b15-a17c-07649fb6a4e0' }]),
+    body: JSON.stringify([{ name: 'EKQR_API_KEY', value: EKQR_API_KEY }]),
   }
 )
 if (secretRes.ok) {

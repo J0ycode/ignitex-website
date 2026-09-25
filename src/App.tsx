@@ -1,12 +1,15 @@
-
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import LandingPage from './pages/LandingPage'
-import RegisterPage from './pages/RegisterPage'
-import ConfirmationPage from './pages/ConfirmationPage'
-import PaymentPage from './pages/PaymentPage'
 import TradingBackground from './components/ui/TradingBackground'
+
+// Everything past the landing page is code-split so first load on mobile stays light
+const RegisterPage     = lazy(() => import('./pages/RegisterPage'))
+const PaymentPage      = lazy(() => import('./pages/PaymentPage'))
+const ConfirmationPage = lazy(() => import('./pages/ConfirmationPage'))
+const AdminPage        = lazy(() => import('./pages/AdminPage'))
 
 export default function App() {
   return (
@@ -18,12 +21,15 @@ export default function App() {
         <Navbar />
 
         <div className="relative z-10">
-          <Routes>
-            <Route path="/"                  element={<LandingPage />} />
-            <Route path="/register"          element={<RegisterPage />} />
-            <Route path="/payment"           element={<PaymentPage />} />
-            <Route path="/confirmation"      element={<ConfirmationPage />} />
-          </Routes>
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/"                  element={<LandingPage />} />
+              <Route path="/register"          element={<RegisterPage />} />
+              <Route path="/payment"           element={<PaymentPage />} />
+              <Route path="/confirmation"      element={<ConfirmationPage />} />
+              <Route path="/admin"             element={<AdminPage />} />
+            </Routes>
+          </Suspense>
         </div>
 
         <Toaster

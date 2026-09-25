@@ -51,6 +51,7 @@ export default function TradingBackground() {
 
     // Prefers reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
 
     // Particles state
     let particles: { x: number, y: number, r: number, vx: number, vy: number, color: string }[] = [];
@@ -170,8 +171,8 @@ export default function TradingBackground() {
         ctx.arc(p.x + offsetX, p.y + offsetY, p.r, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
         
-        // Soft glowing orbs
-        ctx.shadowBlur = 10;
+        // Soft glowing orbs (shadowBlur per particle is expensive on phones)
+        ctx.shadowBlur = isTouch ? 0 : 10;
         ctx.shadowColor = p.color;
         ctx.fill();
         

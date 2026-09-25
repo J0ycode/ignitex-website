@@ -15,7 +15,10 @@ export interface TeamMember {
 const memberSchema = z.object({
   name:     z.string().min(2, 'Name must be at least 2 characters'),
   email:    z.string().email('Invalid email address'),
-  phone:    z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'),
+  // Autofill often gives "+91 98765 43210" — keep the last 10 digits
+  phone:    z.string()
+    .transform((v) => v.replace(/\D/g, '').slice(-10))
+    .pipe(z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number')),
   college:  z.string().min(2, 'College name required'),
   isLeader: z.boolean(),
 })
@@ -55,6 +58,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
     formState: { errors },
   } = useForm<TeamFormValues>({
     resolver: zodResolver(formSchema),
+    shouldFocusError: true, // jumps to the first invalid field on mobile
     defaultValues: initialValues ?? {
       teamName: '',
       members: [
@@ -74,16 +78,19 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
     >
       <div className="mb-6">
         <h2 className="font-display font-bold text-2xl text-white mb-1">Team Details</h2>
-        <p className="text-gray-500 text-sm">2–4 members · Enter details carefully</p>
+        <p className="text-gray-300 text-sm">2–4 members · Enter details carefully</p>
       </div>
 
       <form onSubmit={handleSubmit(onNext)} className="space-y-6">
         {/* Team name */}
         <div>
-          <label className="label-galaksi">Team Name <span className="text-galaksi-500">*</span></label>
+          <label htmlFor="teamName" className="label-galaksi">Team Name <span className="text-galaksi-500">*</span></label>
           <input
             {...register('teamName')}
+            id="teamName"
             placeholder="e.g. NeuralNinjas"
+            autoComplete="off"
+            enterKeyHint="next"
             className={`input-galaksi ${errors.teamName ? 'error' : ''}`}
           />
           {errors.teamName && (
@@ -95,7 +102,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
         <div>
           <div className="flex items-center justify-between mb-3">
             <label className="label-galaksi mb-0">Team Members</label>
-            <span className="text-xs font-mono text-gray-500">{fields.length} / 4</span>
+            <span className="text-xs font-mono text-gray-300">{fields.length} / 4</span>
           </div>
 
           <AnimatePresence>
@@ -124,7 +131,8 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                     <button
                       type="button"
                       onClick={() => remove(index)}
-                      className="text-gray-600 hover:text-galaksi-400 transition-colors p-1"
+                      aria-label={`Remove member ${index + 1}`}
+                      className="-m-2 w-11 h-11 flex items-center justify-center rounded-full text-gray-300 hover:text-galaksi-400 active:bg-white/10 transition-colors"
                     >
                       <FiTrash2 className="w-4 h-4" />
                     </button>
@@ -139,6 +147,10 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <input
                         {...register(`members.${index}.name`)}
                         placeholder="Full Name"
+                        aria-label={`Member ${index + 1} full name`}
+                        autoComplete={index === 0 ? 'name' : 'off'}
+                        autoCapitalize="words"
+                        enterKeyHint="next"
                         className={`input-galaksi pl-10 ${errors.members?.[index]?.name ? 'error' : ''}`}
                       />
                     </div>
@@ -153,7 +165,13 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                       <input
                         {...register(`members.${index}.email`)}
+                        type="email"
+                        inputMode="email"
                         placeholder="Email"
+                        aria-label={`Member ${index + 1} email`}
+                        autoComplete={index === 0 ? 'email' : 'off'}
+                        autoCapitalize="none"
+                        enterKeyHint="next"
                         className={`input-galaksi pl-10 ${errors.members?.[index]?.email ? 'error' : ''}`}
                       />
                     </div>
@@ -168,8 +186,12 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                       <input
                         {...register(`members.${index}.phone`)}
+                        type="tel"
+                        inputMode="numeric"
                         placeholder="10-digit Mobile"
-                        maxLength={10}
+                        aria-label={`Member ${index + 1} mobile number`}
+                        autoComplete={index === 0 ? 'tel-national' : 'off'}
+                        enterKeyHint="next"
                         className={`input-galaksi pl-10 ${errors.members?.[index]?.phone ? 'error' : ''}`}
                       />
                     </div>
@@ -185,6 +207,9 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       <input
                         {...register(`members.${index}.college`)}
                         placeholder="College / Institution"
+                        aria-label={`Member ${index + 1} college`}
+                        autoComplete={index === 0 ? 'organization' : 'off'}
+                        enterKeyHint="next"
                         className={`input-galaksi pl-10 ${errors.members?.[index]?.college ? 'error' : ''}`}
                       />
                     </div>

@@ -13,19 +13,21 @@ export const REGISTRATION_STATUS = {
 
 export type RegistrationStatus = typeof REGISTRATION_STATUS[keyof typeof REGISTRATION_STATUS]
 
+// Keep MAX_TEAMS and the registration window in sync with _reg_config() in
+// supabase/migrations/*_lockdown_registration.sql — the server enforces them.
 export const MAX_TEAMS = 15
 
-/** Derive the key dates from any reference date (uses its year+month) */
-export function getRegistrationDates(ref: Date) {
-  const y = ref.getFullYear()
-  const m = ref.getMonth() // 0-indexed
+// Fixed IST timestamps. Stable object identities, so countdown effects don't
+// reset every render.
+const REGISTRATION_DATES = {
+  registrationOpen:  new Date('2026-09-25T12:00:00+05:30'),
+  registrationClose: new Date('2026-09-26T12:00:00+05:30'),
+  eventStart:        new Date('2026-09-28T09:00:00+05:30'),
+  eventEnd:          new Date('2026-09-29T18:00:00+05:30'),
+} as const
 
-  return {
-    registrationOpen:  new Date(y, m, 1, 12, 0, 0),
-    registrationClose: new Date(y, m, 26, 12, 0, 0),
-    eventStart:        new Date(y, m, 28,  9, 0, 0),
-    eventEnd:          new Date(y, m, 29, 18, 0, 0),
-  }
+export function getRegistrationDates(_ref?: Date) {
+  return REGISTRATION_DATES
 }
 
 /** Pure status computation — no side effects */
@@ -41,8 +43,3 @@ export function computeStatus(now: Date, teamCount: number): RegistrationStatus 
   if (now <= eventEnd)         return 'event_active'
   return 'event_over'
 }
-
-/**
- * Note: server time and team count fetching logic has been removed
- * since the backend is now running via MongoDB without Firestore.
- */

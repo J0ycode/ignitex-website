@@ -4,6 +4,7 @@ import type { TeamFormValues } from './StepTeamDetails'
 import { FiCheck, FiEdit2, FiZap, FiUsers, FiMail, FiPhone, FiBook } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { friendlyRpcError } from '../../lib/payment'
 
 interface StepReviewProps {
   formData: TeamFormValues
@@ -20,49 +21,22 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
     setError(null)
 
     try {
-      const registrationId = Math.random().toString(36).substring(2, 10).toUpperCase()
+      // Team + members are inserted atomically server-side, which also
+      // enforces the team cap, registration window and validation.
+      const { data: registrationId, error: rpcError } = await supabase.rpc('register_team', {
+        p_team_name: formData.teamName,
+        p_members: formData.members.map(({ name, email, phone, college }) => ({
+          name, email, phone, college,
+        })),
+      })
 
-      // ── 1. Insert team row ────────────────────────────────────────────────
-      const { data: team, error: teamError } = await supabase
-        .from('teams')
-        .insert({ registration_id: registrationId, team_name: formData.teamName })
-        .select('id')
-        .single()
-
-      if (teamError) {
-        if (teamError.code === '23505') throw new Error('Team name is already taken')
-        throw new Error(teamError.message)
-      }
-
-      // ── 2. Insert members rows ────────────────────────────────────────────
-      const membersPayload = formData.members.map((m, i) => ({
-        team_id: team.id,
-        name: m.name,
-        email: m.email,
-        phone: m.phone,
-        college: m.college,
-        is_leader: i === 0,
-      }))
-
-      const { error: membersError } = await supabase
-        .from('members')
-        .insert(membersPayload)
-
-      if (membersError) {
-        // Roll back the team row so we don't leave orphaned records
-        await supabase.from('teams').delete().eq('id', team.id)
-        if (membersError.code === '23505') {
-          throw new Error('One or more members are already registered with that email or phone number')
-        }
-        throw new Error(membersError.message)
-      }
+      if (rpcError || typeof registrationId !== 'string') throw rpcError ?? new Error('No registration ID returned')
 
       toast.success('🔥 Team registered successfully!')
       onSuccess(registrationId)
     } catch (err: unknown) {
-      const errorDetail = err instanceof Error ? err.message : String(err)
-      setError(`Submission failed: ${errorDetail}`)
       console.error('Submission Error:', err)
+      setError(friendlyRpcError(err as { message?: string }))
       toast.error('Registration failed')
     } finally {
       setSubmitting(false)

@@ -22,6 +22,9 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    // TradingBackground already animates behind everything; a second
+    // full-screen canvas is too heavy for phones / reduced-motion users.
+    if (window.matchMedia('(max-width: 640px), (prefers-reduced-motion: reduce)').matches) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
@@ -140,7 +143,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
             className="w-2 h-2 rounded-full bg-galaksi-400"
           />
           <span className="font-mono text-xs text-galaksi-300 font-medium uppercase tracking-widest">
-            Ideathon · 28–29 {serverNow ? serverNow.toLocaleString('default', { month: 'long' }) : ''} 2026
+            Ideathon · 28–29 September 2026
           </span>
         </motion.div>
 
@@ -245,7 +248,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
           {status === 'full' && (
             <div className="px-8 py-3.5 rounded-full text-center"
               style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.3)' }}>
-              <span className="font-display font-bold text-galaksi-300">🔥 All 20 slots filled!</span>
+              <span className="font-display font-bold text-galaksi-300">🔥 All {MAX_TEAMS} slots filled!</span>
               <p className="text-xs text-galaksi-400 mt-1">See you at the event on the 28th!</p>
             </div>
           )}
@@ -270,7 +273,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
 
 function HeartbeatLine() {
   return (
-    <svg width="320" height="40" viewBox="0 0 320 40" className="opacity-70">
+    <svg viewBox="0 0 320 40" className="w-full max-w-[320px] h-auto opacity-70">
       <motion.path
         d="M0,20 L60,20 L75,5 L90,35 L105,5 L120,35 L135,20 L160,20 L175,8 L190,32 L205,15 L215,25 L225,20 L320,20"
         fill="none"

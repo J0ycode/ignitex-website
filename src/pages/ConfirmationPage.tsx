@@ -9,9 +9,14 @@ export default function ConfirmationPage() {
   const registrationId = params.get('id') ?? 'N/A'
   const teamName = params.get('team') ?? 'Your Team'
 
-  const copyId = () => {
-    navigator.clipboard.writeText(registrationId)
-    toast.success('Registration ID copied!')
+  const copyId = async () => {
+    try {
+      await navigator.clipboard.writeText(registrationId)
+      toast.success('Registration ID copied!')
+    } catch {
+      // In-app browsers (Instagram/WhatsApp) often block the clipboard
+      toast(`Your ID: ${registrationId}`, { icon: '📋' })
+    }
   }
 
   // Subtle particle burst on mount
@@ -66,7 +71,9 @@ export default function ConfirmationPage() {
             You're <span className="text-gradient-galaksi">Ignited!</span>
           </h1>
           <p className="text-gray-400">
-            Team <strong className="text-white">"{teamName}"</strong> is officially registered for igniteX.
+            Team <strong className="text-white">"{teamName}"</strong> is registered for igniteX.
+            <br />
+            <span className="text-sm text-gray-300">Your spot is confirmed once we verify your payment.</span>
           </p>
         </motion.div>
 
@@ -86,7 +93,7 @@ export default function ConfirmationPage() {
             <span className="font-mono font-bold text-3xl text-white tracking-widest">
               {registrationId}
             </span>
-            <button onClick={copyId} className="p-2 rounded-lg hover:bg-white/5 transition-colors">
+            <button onClick={copyId} aria-label="Copy registration ID" className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-white/5 active:bg-white/10 transition-colors">
               <FiCopy className="w-4 h-4 text-gray-500 hover:text-galaksi-400 transition-colors" />
             </button>
           </div>
@@ -104,7 +111,7 @@ export default function ConfirmationPage() {
             <FiCalendar className="text-galaksi-400 w-5 h-5 flex-shrink-0" />
             <div>
               <p className="font-display font-semibold text-white text-sm">Event Dates</p>
-              <p className="text-gray-500 text-xs">28th & 29th of this month · 9:00 AM onwards</p>
+              <p className="text-gray-500 text-xs">28th & 29th September · 9:00 AM onwards</p>
             </div>
           </div>
           <p className="text-xs text-gray-600">

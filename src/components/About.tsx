@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { FiUsers, FiClock, FiAward, FiZap } from 'react-icons/fi'
+import { MAX_TEAMS } from '../lib/registrationStatus'
 
 const STATS = [
-  { icon: FiUsers, value: '20', label: 'Teams Max', suffix: '' },
+  { icon: FiUsers, value: String(MAX_TEAMS), label: 'Teams Max', suffix: '' },
   { icon: FiClock, value: '4', label: 'Hour Ideathon', suffix: 'h' },
   { icon: FiAward, value: '₹', label: 'Prize Pool', suffix: '5k' },
   { icon: FiZap, value: '100%', label: 'Passion Required', suffix: '' },
@@ -46,7 +47,7 @@ export default function About() {
                 Teams of 2–4 will tackle real-world challenges across six high-impact domains. Expert mentors, state-of-the-art resources, and a community of like-minded innovators surround you throughout.
               </p>
               <p>
-                Only <strong className="text-galaksi-400">20 teams</strong> get in. Every slot counts. Every idea matters.
+                Only <strong className="text-galaksi-400">{MAX_TEAMS} teams</strong> get in. Every slot counts. Every idea matters.
               </p>
             </div>
 
