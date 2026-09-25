@@ -9,6 +9,7 @@ import { UPI_ID, UPI_PAYEE_NAME, ENTRY_FEE, upiPayUrl, upiAppLinks, friendlyRpcE
 import { compressImage, withTimeout, uuid, TimeoutError } from '../lib/upload'
 import { useCountdown } from '../hooks/useCountdown'
 import HelpContacts from '../components/HelpContacts'
+import { CONTACTS, formatPhone, whatsappUrl } from '../lib/contacts'
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024 // images get compressed before upload
 const MAX_PDF_BYTES   = 5 * 1024 * 1024
@@ -348,12 +349,27 @@ export default function PaymentPage() {
                 style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}
               >
                 <FiAlertTriangle className="w-4 h-4 shrink-0 mt-px text-amber-300" />
-                <p>
-                  <strong>Payment failing?</strong> If your UPI app shows an error such as
-                  "server issue" or "bank not responding", please try again using a different
-                  bank account linked to your UPI app. Do not pay twice. If money was debited,
-                  wait for the transaction to settle before retrying.
-                </p>
+                <div className="space-y-1.5">
+                  <p className="font-semibold text-amber-200">Bank server issues</p>
+                  <p>
+                    Some banks are facing outages. If your payment fails, try another bank
+                    account in your UPI app. Do not pay twice. If it still fails, message us
+                    and we'll help you keep your slot:
+                  </p>
+                  <p className="flex flex-wrap gap-x-4 gap-y-1">
+                    {CONTACTS.map((c) => (
+                      <a
+                        key={c.phone}
+                        href={whatsappUrl(c.phone, `Hi ${c.name}, my igniteX payment is failing. Team ${teamName}, registration ID ${registrationId}.`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-amber-200 underline underline-offset-2"
+                      >
+                        {c.name} · {formatPhone(c.phone)}
+                      </a>
+                    ))}
+                  </p>
+                </div>
               </div>
 
               <button
