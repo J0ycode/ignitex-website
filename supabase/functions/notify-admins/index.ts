@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
   if (error) return new Response(error.message, { status: 500 })
 
   const payload = JSON.stringify({
-    title: '💸 New payment proof',
+    title: 'New payment proof',
     body: `${team_name ?? 'A team'} (${registration_id ?? '?'}) · UTR ${utr ?? '—'}`,
     url: '/admin',
     tag: `payment-${registration_id}`,

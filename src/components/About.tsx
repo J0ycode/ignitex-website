@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { MAX_TEAMS } from '../lib/registrationStatus'
 import { ENTRY_FEE } from '../lib/payment'
+import HelpContacts from './HelpContacts'
 
 const NUMBERS = [
   { value: '2', label: 'days' },
@@ -85,6 +86,7 @@ export default function About() {
           <p className="mt-10 text-sm text-stone-400">
             Already registered? <Link to="/my-registration" className="text-galaksi-100 underline underline-offset-4">Check your status or ticket</Link>.
           </p>
+          <div className="mt-3"><HelpContacts compact /></div>
         </div>
       </section>
     </>

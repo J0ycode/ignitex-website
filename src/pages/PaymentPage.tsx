@@ -8,6 +8,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { UPI_ID, UPI_PAYEE_NAME, ENTRY_FEE, upiPayUrl, upiAppLinks, friendlyRpcError } from '../lib/payment'
 import { compressImage, withTimeout, uuid, TimeoutError } from '../lib/upload'
 import { useCountdown } from '../hooks/useCountdown'
+import HelpContacts from '../components/HelpContacts'
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024 // images get compressed before upload
 const MAX_PDF_BYTES   = 5 * 1024 * 1024
@@ -438,6 +439,8 @@ export default function PaymentPage() {
             onCheck={checkStatus}
           />
         )}
+
+        <HelpContacts context={`Team ${teamName}, registration ID ${registrationId}.`} />
       </motion.div>
     </div>
   )

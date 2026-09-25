@@ -8,6 +8,7 @@ import StepTeamDetails from '../components/steps/StepTeamDetails'
 import type { TeamFormValues } from '../components/steps/StepTeamDetails'
 import StepReview from '../components/steps/StepReview'
 import Countdown from '../components/Countdown'
+import HelpContacts from '../components/HelpContacts'
 import { FiAlertOctagon, FiClock, FiLock } from 'react-icons/fi'
 
 const STEPS = ['Team Details', 'Review']
@@ -132,6 +133,7 @@ export default function RegisterPage() {
             )}
           </AnimatePresence>
         </div>
+        <div className="mt-6 text-center"><HelpContacts compact /></div>
       </motion.div>
     </div>
   )

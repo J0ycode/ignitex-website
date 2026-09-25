@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import logo from '../assets/IngniteX.png'
+import logo from '../assets/ignitex-logo.webp'
 
 export default function Navbar() {
   const location = useLocation()

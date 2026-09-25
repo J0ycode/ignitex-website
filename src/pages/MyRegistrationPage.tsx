@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { FiSearch, FiChevronRight } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { getDeviceId, getSavedRegistrations, saveRegistration } from '../lib/device'
+import HelpContacts from '../components/HelpContacts'
 
 interface Registration {
   registration_id: string
@@ -103,6 +104,8 @@ export default function MyRegistrationPage() {
         )}
 
         <RecoverForm onFound={onRecovered} />
+
+        <HelpContacts />
 
         {!loading && regs.length === 0 && (
           <Link to="/register" className="btn-outline-galaksi w-full min-h-[48px]">Register a team</Link>

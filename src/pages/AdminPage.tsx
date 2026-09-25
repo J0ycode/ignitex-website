@@ -142,7 +142,7 @@ function Dashboard({ email }: { email: string }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, (payload) => {
         const row = payload.new as Partial<AdminTeam> | undefined
         if (payload.eventType === 'INSERT' && row?.team_name) {
-          toast(`🆕 New team registered: ${row.team_name}`)
+          toast(`New team registered: ${row.team_name}`)
         }
         if (payload.eventType === 'UPDATE' && row?.payment_status === 'ticket_uploaded') {
           const prev = teamsRef.current.find((t) => t.registration_id === row.registration_id)
@@ -150,8 +150,8 @@ function Dashboard({ email }: { email: string }) {
           if (isNewProof) {
             const body = `${row.team_name} · UTR ${row.payment_txn_id ?? '—'}`
             chime()
-            toast.success(`💸 New payment proof — ${body}`, { duration: 8000 })
-            if (document.hidden) localNotify('💸 New payment proof', body, `payment-${row.registration_id}`)
+            toast.success(`New payment proof — ${body}`, { duration: 8000 })
+            if (document.hidden) localNotify('New payment proof', body, `payment-${row.registration_id}`)
           }
         }
         load() // refetch (members, device info, counts)
@@ -369,7 +369,7 @@ function TeamCard({ team, onSetStatus, onVerify }: {
         </div>
         <div className="shrink-0 flex flex-col items-end gap-1">
           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${status.cls}`}>{status.label}</span>
-          {team.ticket_sent_at && <span className="text-[11px] text-stone-400">📧 Ticket sent</span>}
+          {team.ticket_sent_at && <span className="text-[11px] text-stone-400">Ticket sent</span>}
         </div>
       </div>
 
@@ -408,7 +408,7 @@ function TeamCard({ team, onSetStatus, onVerify }: {
         <ul className="mt-1 space-y-2 text-xs text-stone-300">
           {team.members.map((m) => (
             <li key={m.email} className="p-2 rounded-lg bg-white/5">
-              <p className="text-galaksi-100 font-semibold">{m.name}{m.is_leader && ' 👑'}</p>
+              <p className="text-galaksi-100 font-semibold">{m.name}{m.is_leader && ' (leader)'}</p>
               <p className="break-all">{m.email} · {m.phone}</p>
               <p>{m.college}</p>
             </li>
@@ -490,13 +490,13 @@ function whatsappLink(team: AdminTeam): string {
   const leader = team.members.find((m) => m.is_leader) ?? team.members[0]
   const phone = (leader?.phone ?? '').replace(/\D/g, '').slice(-10)
   const text = [
-    `Hi ${leader?.name ?? ''}! Your igniteX payment is verified ✅`,
+    `Hi ${leader?.name ?? ''}, your igniteX payment is verified.`,
     '',
     `Team: ${team.team_name}`,
     `Registration ID: ${team.registration_id}`,
     `Ticket: ${window.location.origin}/ticket/${team.registration_id}`,
     '',
-    'Show the ticket QR at check-in — 28 Sep 2026, 9:30 AM. The ticket has also been emailed to all members. See you there! 🔥',
+    'Show the ticket QR at check-in — 28 Sep 2026, 9:30 AM. The ticket has also been emailed to all members. See you there!',
   ].join('\n')
   return `https://wa.me/91${phone}?text=${encodeURIComponent(text)}`
 }

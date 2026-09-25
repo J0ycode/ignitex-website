@@ -62,6 +62,9 @@ export function buildTicketEmail(team: TicketTeam, ticketUrl: string): TicketEma
     <p style="margin:16px 0 0;font-size:12px;color:#9ca3af;text-align:center">
       Show this QR at the check-in desk. Every team member can use the same ticket.
     </p>
+    <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;text-align:center">
+      Questions? WhatsApp Joyel 62820 75201 or Albin 96050 54721.
+    </p>
   </div>
 </div>`
 
@@ -74,7 +77,8 @@ export function buildTicketEmail(team: TicketTeam, ticketUrl: string): TicketEma
       `Your igniteX payment is verified!\n\n` +
       `Team: ${team.team_name}\nRegistration ID: ${team.registration_id}\n` +
       `Event: 28–29 September 2026, 9:30 AM\n\n` +
-      `Ticket: ${ticketUrl}\n\nShow the QR / registration ID at check-in.`,
+      `Ticket: ${ticketUrl}\n\nShow the QR / registration ID at check-in.\n\n` +
+      `Questions? WhatsApp Joyel 62820 75201 or Albin 96050 54721.`,
     qrCid: 'ticket-qr',
     qrFilename: `ignitex-${team.registration_id}.png`,
   }

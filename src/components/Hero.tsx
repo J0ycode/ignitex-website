@@ -3,8 +3,8 @@ import { FiArrowRight } from 'react-icons/fi'
 import Countdown from './Countdown'
 import type { RegistrationStatus } from '../lib/registrationStatus'
 import { getRegistrationDates, MAX_TEAMS } from '../lib/registrationStatus'
-import txaLogo from '../assets/TXA-logo.png'
-import ignitexLogo from '../assets/IngniteX.png'
+import txaLogo from '../assets/txa-logo.webp'
+import ignitexLogo from '../assets/ignitex-logo.webp'
 
 interface HeroProps {
   status: RegistrationStatus | null

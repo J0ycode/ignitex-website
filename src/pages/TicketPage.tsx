@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { FiCalendar, FiClock, FiDownload, FiShare2 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import HelpContacts from '../components/HelpContacts'
 
 interface Ticket {
   registration_id: string
@@ -74,6 +75,7 @@ export default function TicketPage() {
           <Link to={`/payment?id=${registrationId}`} className="btn-outline-galaksi w-full min-h-[48px]">
             Check payment status
           </Link>
+          <div className="text-left pt-2"><HelpContacts context={`Registration ID ${registrationId}.`} /></div>
         </div>
       </div>
     )
