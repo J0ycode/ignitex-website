@@ -15,6 +15,10 @@ const MAX_PDF_BYTES   = 5 * 1024 * 1024
 const UPLOAD_TIMEOUT_MS = 60_000
 const RPC_TIMEOUT_MS    = 20_000
 const ALLOWED_EXT = ['png', 'jpg', 'jpeg', 'webp', 'heic', 'pdf']
+// Some phones give HEIC files an empty type; the bucket only accepts these types
+const MIME_BY_EXT: Record<string, string> = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', heic: 'image/heic', pdf: 'application/pdf',
+}
 
 export default function PaymentPage() {
   const [params] = useSearchParams()
@@ -147,7 +151,7 @@ export default function PaymentPage() {
       const { error: uploadErr } = await withTimeout(
         supabase.storage
           .from('tickets')
-          .upload(path, toUpload, { upsert: false, contentType: toUpload.type || undefined }),
+          .upload(path, toUpload, { upsert: false, contentType: toUpload.type || MIME_BY_EXT[ext] }),
         UPLOAD_TIMEOUT_MS,
       )
       if (uploadErr) throw uploadErr

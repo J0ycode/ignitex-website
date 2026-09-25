@@ -3,7 +3,7 @@ import { FunctionsHttpError, type Session } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 import {
   FiCheck, FiX, FiEye, FiDownload, FiRefreshCw, FiLogOut, FiChevronDown, FiSearch,
-  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor,
+  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { MAX_TEAMS } from '../lib/registrationStatus'
@@ -188,6 +188,19 @@ function Dashboard({ email }: { email: string }) {
     }
   }
 
+  /** Deletes the team (frees its slot) and its payment-proof file. */
+  const deleteTeam = async (team: AdminTeam) => {
+    const { data: proofPath, error } = await supabase.rpc('admin_delete_team', { p_registration_id: team.registration_id })
+    if (error) {
+      toast.error('Delete failed')
+      return
+    }
+    const path = storagePath(typeof proofPath === 'string' ? proofPath : null)
+    if (path) await supabase.storage.from('tickets').remove([path])
+    setTeams((ts) => ts.filter((t) => t.registration_id !== team.registration_id))
+    toast.success(`Deleted ${team.team_name}`)
+  }
+
   const setStatus = async (team: AdminTeam, status: PaymentStatus) => {
     const prev = teams
     setTeams((ts) => ts.map((t) => (t.registration_id === team.registration_id ? { ...t, payment_status: status } : t)))
@@ -329,7 +342,7 @@ function Dashboard({ email }: { email: string }) {
       ) : (
         <ul className="space-y-3">
           {visible.map((t) => (
-            <TeamCard key={t.registration_id} team={t} onSetStatus={setStatus} onVerify={verifyAndSend} />
+            <TeamCard key={t.registration_id} team={t} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} />
           ))}
         </ul>
       )}
@@ -337,10 +350,11 @@ function Dashboard({ email }: { email: string }) {
   )
 }
 
-function TeamCard({ team, onSetStatus, onVerify }: {
+function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
   team: AdminTeam
   onSetStatus: (t: AdminTeam, s: PaymentStatus) => void
   onVerify: (t: AdminTeam) => Promise<void>
+  onDelete: (t: AdminTeam) => Promise<void>
 }) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -477,6 +491,24 @@ function TeamCard({ team, onSetStatus, onVerify }: {
           </button>
         </div>
       )}
+
+      <button
+        onClick={async () => {
+          const warn = team.payment_status === 'verified'
+            ? `${team.team_name} is VERIFIED and has a ticket.
+
+Delete anyway? Their ticket will stop working. This cannot be undone.`
+            : `Delete ${team.team_name}? This frees its slot and cannot be undone.`
+          if (!window.confirm(warn)) return
+          setBusy(true)
+          await onDelete(team)
+          setBusy(false)
+        }}
+        disabled={busy}
+        className="mt-3 flex items-center gap-1.5 min-h-[36px] text-xs text-stone-500 hover:text-red-300 disabled:opacity-30"
+      >
+        <FiTrash2 /> Delete team
+      </button>
     </li>
   )
 }
