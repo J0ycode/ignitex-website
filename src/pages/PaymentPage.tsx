@@ -1,18 +1,21 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiZap, FiAlertCircle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid } from 'react-icons/fi'
+import { FiZap, FiAlertCircle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { QRCodeSVG } from 'qrcode.react'
 import { UPI_ID, UPI_PAYEE_NAME, ENTRY_FEE, upiPayUrl, upiAppLinks, friendlyRpcError } from '../lib/payment'
+import { compressImage, withTimeout, uuid, TimeoutError } from '../lib/upload'
 
-const MAX_FILE_BYTES = 5 * 1024 * 1024
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024 // images get compressed before upload
+const MAX_PDF_BYTES   = 5 * 1024 * 1024
+const UPLOAD_TIMEOUT_MS = 60_000
+const RPC_TIMEOUT_MS    = 20_000
 const ALLOWED_EXT = ['png', 'jpg', 'jpeg', 'webp', 'heic', 'pdf']
 
 export default function PaymentPage() {
   const [params] = useSearchParams()
-  const navigate = useNavigate()
   const registrationId = (params.get('id') ?? '').toUpperCase()
 
   const [phase, setPhase]         = useState<'loading' | 'ready_to_pay' | 'error'>('loading')
@@ -20,8 +23,11 @@ export default function PaymentPage() {
   const [teamName, setTeamName]   = useState(params.get('team') ?? '')
   const [file, setFile]           = useState<File | null>(null)
   const [utr, setUtr]             = useState('')
-  const [isUploading, setIsUploading]     = useState(false)
+  const [uploadStep, setUploadStep] = useState<'compressing' | 'uploading' | 'saving' | null>(null)
+  const isUploading = uploadStep !== null
   const [isPaymentDone, setIsPaymentDone] = useState(false)
+  const [isVerified, setIsVerified] = useState(false)
+  const [checking, setChecking] = useState(false)
   const [showQr, setShowQr]       = useState(false)
   const [wasRejected, setWasRejected] = useState(false)
 
@@ -35,7 +41,12 @@ export default function PaymentPage() {
     // Dev-only: /payment?id=TEST previews the pay buttons without a real team.
     // Stripped from production builds.
     if (import.meta.env.DEV && registrationId === 'TEST') {
+      // &state=pending | verified | rejected previews the later screens
+      const state = params.get('state')
       setTeamName('Test Team')
+      setIsPaymentDone(state === 'pending' || state === 'verified')
+      setIsVerified(state === 'verified')
+      setWasRejected(state === 'rejected')
       setPhase('ready_to_pay')
       return
     }
@@ -49,11 +60,34 @@ export default function PaymentPage() {
     }
     setTeamName(team.team_name)
     if (team.payment_status === 'ticket_uploaded' || team.payment_status === 'verified') setIsPaymentDone(true)
+    setIsVerified(team.payment_status === 'verified')
     setWasRejected(team.payment_status === 'rejected')
     setPhase('ready_to_pay')
   }, [registrationId])
 
   useEffect(() => { loadTeam() }, [loadTeam])
+
+  /** Quiet re-check used by the status tab (no full-page loader) */
+  const checkStatus = useCallback(async () => {
+    if (import.meta.env.DEV && registrationId === 'TEST') return
+    setChecking(true)
+    const { data } = await supabase.rpc('get_team_summary', { p_registration_id: registrationId })
+    setChecking(false)
+    const team = Array.isArray(data) ? data[0] : null
+    if (!team) return
+    setIsVerified(team.payment_status === 'verified')
+    if (team.payment_status === 'rejected') {
+      setWasRejected(true)
+      setIsPaymentDone(false)
+    }
+  }, [registrationId])
+
+  // While waiting for verification, re-check every 30s
+  useEffect(() => {
+    if (!isPaymentDone || isVerified) return
+    const t = setInterval(checkStatus, 30_000)
+    return () => clearInterval(t)
+  }, [isPaymentDone, isVerified, checkStatus])
 
   const preview = useMemo(
     () => (file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null),
@@ -74,7 +108,10 @@ export default function PaymentPage() {
     if (!f) return setFile(null)
     const ext = f.name.split('.').pop()?.toLowerCase() ?? ''
     if (!ALLOWED_EXT.includes(ext)) return toast.error('Please upload an image or PDF')
-    if (f.size > MAX_FILE_BYTES) return toast.error('File is larger than 5 MB')
+    const isPdf = ext === 'pdf'
+    if (f.size > (isPdf ? MAX_PDF_BYTES : MAX_IMAGE_BYTES)) {
+      return toast.error(isPdf ? 'PDF is larger than 5 MB' : 'Image is larger than 20 MB')
+    }
     setFile(f)
   }
 
@@ -83,20 +120,42 @@ export default function PaymentPage() {
 
   const submitPayment = async () => {
     if (!file || !utrValid) return
-    setIsUploading(true)
     try {
-      const ext = file.name.split('.').pop()!.toLowerCase()
-      const path = `${registrationId}/${crypto.randomUUID()}.${ext}`
-      const { error: uploadErr } = await supabase.storage
-        .from('tickets')
-        .upload(path, file, { upsert: false, contentType: file.type || undefined })
+      // Dev-only TEST mode: simulate success without touching the database
+      if (import.meta.env.DEV && registrationId === 'TEST') {
+        setUploadStep('compressing')
+        const out = await compressImage(file)
+        console.info(`[TEST] compressed ${file.size} → ${out.size} bytes`)
+        setUploadStep('uploading')
+        await new Promise((r) => setTimeout(r, 800))
+        toast.success('TEST: upload simulated (nothing saved)')
+        setIsPaymentDone(true)
+        return
+      }
+
+      setUploadStep('compressing')
+      const toUpload = await compressImage(file)
+
+      setUploadStep('uploading')
+      const ext = toUpload.name.split('.').pop()!.toLowerCase()
+      const path = `${registrationId}/${uuid()}.${ext}`
+      const { error: uploadErr } = await withTimeout(
+        supabase.storage
+          .from('tickets')
+          .upload(path, toUpload, { upsert: false, contentType: toUpload.type || undefined }),
+        UPLOAD_TIMEOUT_MS,
+      )
       if (uploadErr) throw uploadErr
 
-      const { error: rpcErr } = await supabase.rpc('submit_payment', {
-        p_registration_id: registrationId,
-        p_screenshot_path: path,
-        p_utr: cleanUtr,
-      })
+      setUploadStep('saving')
+      const { error: rpcErr } = await withTimeout(
+        supabase.rpc('submit_payment', {
+          p_registration_id: registrationId,
+          p_screenshot_path: path,
+          p_utr: cleanUtr,
+        }),
+        RPC_TIMEOUT_MS,
+      )
       if (rpcErr) throw rpcErr
 
       toast.success('Payment proof submitted!')
@@ -104,9 +163,13 @@ export default function PaymentPage() {
       setWasRejected(false)
     } catch (e) {
       console.error('Payment submit error:', e)
-      toast.error(friendlyRpcError(e as { message?: string }))
+      if (e instanceof TimeoutError || (e instanceof Error && /fetch|network/i.test(e.message))) {
+        toast.error('Upload is taking too long — check your connection and try again.', { duration: 6000 })
+      } else {
+        toast.error(friendlyRpcError(e as { message?: string }))
+      }
     } finally {
-      setIsUploading(false)
+      setUploadStep(null)
     }
   }
 
@@ -167,11 +230,13 @@ export default function PaymentPage() {
             <FiZap className="w-6 h-6 text-galaksi-400" />
           </div>
           <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white mb-2">
-            {isPaymentDone ? 'Payment Submitted' : 'Complete Payment'}
+            {isVerified ? 'Payment Verified 🎉' : isPaymentDone ? 'Under Verification' : 'Complete Payment'}
           </h1>
           <p className="text-gray-300 text-sm">
-            {isPaymentDone
-              ? "We'll verify your payment and confirm by email."
+            {isVerified
+              ? 'Your ticket has been emailed to your team.'
+              : isPaymentDone
+              ? "We're cross-checking your payment. Your ticket arrives by email once verified."
               : `Pay ₹${ENTRY_FEE} via UPI, then upload the screenshot and UTR.`}
           </p>
         </div>
@@ -294,7 +359,7 @@ export default function PaymentPage() {
                   <>
                     <FiUploadCloud className="w-8 h-8 text-galaksi-300" />
                     <span className="text-sm font-semibold text-white">Tap to upload payment screenshot</span>
-                    <span className="text-xs text-gray-400">PNG, JPG or PDF · max 5 MB</span>
+                    <span className="text-xs text-gray-400">Screenshot (PNG/JPG) or PDF</span>
                   </>
                 )}
                 <input
@@ -337,33 +402,20 @@ export default function PaymentPage() {
                 disabled={!file || !utrValid || isUploading}
                 className="btn-galaksi w-full min-h-[52px] disabled:opacity-50 disabled:pointer-events-none"
               >
-                {isUploading ? 'Uploading…' : 'Submit Payment Proof'}
+                {uploadStep === 'compressing' ? 'Preparing image…'
+                  : uploadStep === 'uploading' ? 'Uploading…'
+                  : uploadStep === 'saving' ? 'Saving…'
+                  : 'Submit Payment Proof'}
               </button>
             </section>
           </>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <p className="text-sm text-gray-300 text-center">
-              Grab your official ticket from KonfHub below.
-            </p>
-            <div className="w-full rounded-xl overflow-hidden bg-white/5 p-2 border border-white/10">
-              <iframe
-                src="https://konfhub.com/widget/id/a6805b76-b8e6-4512-9a02-5fac9fc51ec1"
-                id="konfhub-widget"
-                title="IgniteX tickets on KonfHub"
-                width="100%"
-                className="h-[70vh] sm:h-[500px]"
-                allow="payment"
-                style={{ border: 'none', borderRadius: '8px' }}
-              />
-            </div>
-            <button
-              onClick={() => navigate(`/confirmation?id=${registrationId}&team=${encodeURIComponent(teamName)}`)}
-              className="btn-outline-galaksi w-full min-h-[52px]"
-            >
-              Continue
-            </button>
-          </motion.div>
+          <VerificationStatus
+            verified={isVerified}
+            registrationId={registrationId}
+            checking={checking}
+            onCheck={checkStatus}
+          />
         )}
       </motion.div>
     </div>
@@ -387,5 +439,62 @@ function StepLabel({ n, children }: { n: number; children: React.ReactNode }) {
       </span>
       {children}
     </p>
+  )
+}
+
+function VerificationStatus({
+  verified, registrationId, checking, onCheck,
+}: { verified: boolean; registrationId: string; checking: boolean; onCheck: () => void }) {
+  const steps = [
+    { label: 'Team registered', done: true },
+    { label: 'Payment proof & UTR submitted', done: true },
+    { label: 'Payment verified by organisers', done: verified, active: !verified },
+    { label: 'Ticket emailed to your team', done: verified },
+  ]
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+      <ol
+        className="p-5 rounded-2xl space-y-4"
+        style={{ background: 'rgba(22,22,37,0.85)', border: '1px solid rgba(166,149,227,0.2)' }}
+      >
+        {steps.map((s) => (
+          <li key={s.label} className="flex items-center gap-3">
+            <span
+              className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center ${
+                s.done ? 'bg-green-500/25 text-green-300' : s.active ? 'bg-amber-500/20 text-amber-300' : 'bg-white/5 text-gray-500'
+              }`}
+            >
+              {s.done ? <FiCheck className="w-4 h-4" /> : s.active ? <FiClock className="w-4 h-4 animate-pulse" /> : <FiMail className="w-3.5 h-3.5" />}
+            </span>
+            <span className={`text-sm ${s.done ? 'text-white' : s.active ? 'text-amber-200 font-semibold' : 'text-gray-400'}`}>
+              {s.label}
+              {s.active && <span className="block text-xs font-normal text-gray-400">Usually within a few hours</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      {verified ? (
+        <Link to={`/ticket/${registrationId}`} className="btn-galaksi w-full min-h-[52px]">
+          View your ticket
+        </Link>
+      ) : (
+        <>
+          <button
+            onClick={onCheck}
+            disabled={checking}
+            className="btn-outline-galaksi w-full gap-2 min-h-[52px] disabled:opacity-60"
+          >
+            <FiRefreshCw className={checking ? 'animate-spin' : ''} />
+            {checking ? 'Checking…' : 'Check status'}
+          </button>
+          <p className="text-xs text-gray-400 text-center">
+            Bookmark this page to check back anytime. The ticket goes to every member's email,
+            and we'll also message the team leader on WhatsApp.
+          </p>
+        </>
+      )}
+    </motion.div>
   )
 }

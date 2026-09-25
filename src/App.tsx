@@ -10,6 +10,8 @@ const RegisterPage     = lazy(() => import('./pages/RegisterPage'))
 const PaymentPage      = lazy(() => import('./pages/PaymentPage'))
 const ConfirmationPage = lazy(() => import('./pages/ConfirmationPage'))
 const AdminPage        = lazy(() => import('./pages/AdminPage'))
+const TicketPage       = lazy(() => import('./pages/TicketPage'))
+const MyRegistrationPage = lazy(() => import('./pages/MyRegistrationPage'))
 
 export default function App() {
   return (
@@ -28,6 +30,8 @@ export default function App() {
               <Route path="/payment"           element={<PaymentPage />} />
               <Route path="/confirmation"      element={<ConfirmationPage />} />
               <Route path="/admin"             element={<AdminPage />} />
+              <Route path="/ticket/:id"        element={<TicketPage />} />
+              <Route path="/my-registration"   element={<MyRegistrationPage />} />
             </Routes>
           </Suspense>
         </div>

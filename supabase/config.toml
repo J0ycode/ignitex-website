@@ -1,4 +1,17 @@
 
+# Verifies a team's payment and emails their ticket. Called from /admin with
+# the organiser's session, so JWT verification stays ON.
+[functions.send-ticket]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/send-ticket/index.ts"
+
+# Called by the teams_notify_admins DB trigger with a shared secret header.
+[functions.notify-admins]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/notify-admins/index.ts"
+
 [functions.paisa-create]
 enabled = true
 verify_jwt = false

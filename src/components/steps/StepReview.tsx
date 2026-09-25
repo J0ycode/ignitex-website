@@ -5,6 +5,7 @@ import { FiCheck, FiEdit2, FiZap, FiUsers, FiMail, FiPhone, FiBook } from 'react
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
 import { friendlyRpcError } from '../../lib/payment'
+import { getDeviceId, saveRegistration } from '../../lib/device'
 
 interface StepReviewProps {
   formData: TeamFormValues
@@ -23,15 +24,26 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
     try {
       // Team + members are inserted atomically server-side, which also
       // enforces the team cap, registration window and validation.
-      const { data: registrationId, error: rpcError } = await supabase.rpc('register_team', {
+      const args = {
         p_team_name: formData.teamName,
         p_members: formData.members.map(({ name, email, phone, college }) => ({
           name, email, phone, college,
         })),
+      }
+      let { data: registrationId, error: rpcError } = await supabase.rpc('register_team', {
+        ...args,
+        p_device_id: getDeviceId(),
       })
+      // Database not yet migrated to the device-aware version (PGRST202 = no
+      // matching function) — fall back to the old signature so sign-ups never break.
+      if (rpcError?.code === 'PGRST202') {
+        ;({ data: registrationId, error: rpcError } = await supabase.rpc('register_team', args))
+      }
 
       if (rpcError || typeof registrationId !== 'string') throw rpcError ?? new Error('No registration ID returned')
 
+      // Lets "My Registration" find this team again on this device
+      saveRegistration({ registration_id: registrationId, team_name: formData.teamName })
       toast.success('🔥 Team registered successfully!')
       onSuccess(registrationId)
     } catch (err: unknown) {
@@ -157,8 +169,9 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
         </motion.button>
       </div>
 
-      <p className="text-center text-xs text-gray-600 mt-4">
-        By registering, you agree to the event's terms and code of conduct
+      <p className="text-center text-xs text-gray-400 mt-4">
+        By registering, you agree to the event's terms and code of conduct.
+        For security and follow-up, we record this device and its IP address with your registration.
       </p>
     </motion.div>
   )

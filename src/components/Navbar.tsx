@@ -34,6 +34,12 @@ export default function Navbar() {
         {/* Nav links */}
         <div className="hidden sm:flex items-center gap-6">
           <NavLink href="/#about">About</NavLink>
+          <Link
+            to="/my-registration"
+            className="font-display text-sm font-medium text-gray-400 hover:text-galaksi-400 transition-colors duration-200"
+          >
+            My Ticket
+          </Link>
           {!isRegisterPage && (
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
@@ -46,14 +52,20 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile register button */}
-        {!isRegisterPage && (
-          <div className="sm:hidden">
+        {/* Mobile: My Ticket + register button */}
+        <div className="sm:hidden flex items-center gap-1">
+          <Link
+            to="/my-registration"
+            className="px-3 min-h-[44px] flex items-center text-xs font-display font-medium text-gray-300"
+          >
+            My Ticket
+          </Link>
+          {!isRegisterPage && (
             <Link to="/register" className="btn-galaksi text-xs px-4 py-2">
               Register
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </motion.nav>
   )

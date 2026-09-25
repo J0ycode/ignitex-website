@@ -62,6 +62,7 @@ const RPC_ERRORS: Record<string, string> = {
   INVALID_MEMBER_COUNT: 'Teams must have 2–4 members.',
   INVALID_MEMBER: 'Some member details are invalid. Please check and try again.',
   INVALID_UTR: 'Enter the 12-digit UTR / transaction ID from your UPI app.',
+  UTR_ALREADY_USED: 'This UTR has already been submitted by another team. Check the number and try again.',
   INVALID_SCREENSHOT_PATH: 'Screenshot upload failed. Please try again.',
   PAYMENT_NOT_ALLOWED: 'This registration can no longer be updated. Contact the organisers.',
 }
