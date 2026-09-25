@@ -4,7 +4,7 @@ import { MAX_TEAMS } from '../lib/registrationStatus'
 
 const STATS = [
   { icon: FiUsers, value: String(MAX_TEAMS), label: 'Teams Max', suffix: '' },
-  { icon: FiClock, value: '4', label: 'Hour Ideathon', suffix: 'h' },
+  { icon: FiClock, value: '2', label: 'Day Ideathon', suffix: '' },
   { icon: FiAward, value: '₹', label: 'Prize Pool', suffix: '5k' },
   { icon: FiZap, value: '100%', label: 'Passion Required', suffix: '' },
 ]
@@ -41,7 +41,7 @@ export default function About() {
             </h2>
             <div className="space-y-4 text-gray-400 font-body leading-relaxed">
               <p>
-                igniteX is a 4-hour ideathon designed for builders, dreamers, and problem-solvers who believe technology can change the world. Not a demo competition — a crucible where real ideas get forged.
+                igniteX is a two-day ideathon designed for builders, dreamers, and problem-solvers who believe technology can change the world. Not a demo competition — a crucible where real ideas get forged.
               </p>
               <p>
                 Teams of 2–4 will tackle real-world challenges across six high-impact domains. Expert mentors, state-of-the-art resources, and a community of like-minded innovators surround you throughout.

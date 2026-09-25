@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion'
-import { FiZap, FiGithub, FiTwitter, FiInstagram } from 'react-icons/fi'
+import { FiZap } from 'react-icons/fi'
 
 export default function Footer() {
   return (
@@ -19,22 +18,9 @@ export default function Footer() {
 
         {/* Tagline */}
         <p className="font-mono text-xs text-gray-600 text-center">
-          "Ideas are the pulses of progress" · 28–29 this month
+          "Ideas are the pulses of progress" · 28–29 Sep 2026
         </p>
 
-        {/* Socials */}
-        <div className="flex items-center gap-4">
-          {[FiTwitter, FiInstagram, FiGithub].map((Icon, i) => (
-            <motion.a
-              key={i}
-              href="#"
-              whileHover={{ scale: 1.2, color: '#a695e3' }}
-              className="text-gray-600 hover:text-galaksi-400 transition-colors"
-            >
-              <Icon className="w-4 h-4" />
-            </motion.a>
-          ))}
-        </div>
       </div>
     </footer>
   )

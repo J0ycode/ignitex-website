@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { QRCodeSVG } from 'qrcode.react'
 import { UPI_ID, UPI_PAYEE_NAME, ENTRY_FEE, upiPayUrl, upiAppLinks, friendlyRpcError } from '../lib/payment'
 import { compressImage, withTimeout, uuid, TimeoutError } from '../lib/upload'
+import { useCountdown } from '../hooks/useCountdown'
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024 // images get compressed before upload
 const MAX_PDF_BYTES   = 5 * 1024 * 1024
@@ -28,6 +29,8 @@ export default function PaymentPage() {
   const [isPaymentDone, setIsPaymentDone] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
   const [checking, setChecking] = useState(false)
+  const [holdExpiresAt, setHoldExpiresAt] = useState<Date | null>(null)
+  const hold = useCountdown(holdExpiresAt)
   const [showQr, setShowQr]       = useState(false)
   const [wasRejected, setWasRejected] = useState(false)
 
@@ -62,6 +65,7 @@ export default function PaymentPage() {
     if (team.payment_status === 'ticket_uploaded' || team.payment_status === 'verified') setIsPaymentDone(true)
     setIsVerified(team.payment_status === 'verified')
     setWasRejected(team.payment_status === 'rejected')
+    setHoldExpiresAt(team.hold_expires_at ? new Date(team.hold_expires_at) : null)
     setPhase('ready_to_pay')
   }, [registrationId])
 
@@ -255,6 +259,23 @@ export default function PaymentPage() {
 
         {!isPaymentDone ? (
           <>
+            {holdExpiresAt && (
+              <div
+                className={`p-3 rounded-xl text-sm text-center ${hold.total > 0 ? 'text-amber-100' : 'text-red-200'}`}
+                style={{
+                  background: hold.total > 0 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${hold.total > 0 ? 'rgba(245,158,11,0.35)' : 'rgba(239,68,68,0.3)'}`,
+                }}
+              >
+                {hold.total > 0 ? (
+                  <>⏳ Pay within <span className="font-mono font-bold">
+                    {String(hold.hours).padStart(2, '0')}:{String(hold.minutes).padStart(2, '0')}:{String(hold.seconds).padStart(2, '0')}
+                  </span> to keep your slot</>
+                ) : (
+                  <>Your slot hold has expired — you can still pay if a slot is free.</>
+                )}
+              </div>
+            )}
             {wasRejected && (
               <div
                 className="p-4 rounded-xl text-sm text-red-200"

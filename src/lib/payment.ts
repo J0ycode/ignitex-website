@@ -64,6 +64,7 @@ const RPC_ERRORS: Record<string, string> = {
   INVALID_UTR: 'Enter the 12-digit UTR / transaction ID from your UPI app.',
   UTR_ALREADY_USED: 'This UTR has already been submitted by another team. Check the number and try again.',
   INVALID_SCREENSHOT_PATH: 'Screenshot upload failed. Please try again.',
+  SLOT_EXPIRED: 'Your 2-hour slot hold expired and all slots are now taken. Contact the organisers.',
   PAYMENT_NOT_ALLOWED: 'This registration can no longer be updated. Contact the organisers.',
 }
 

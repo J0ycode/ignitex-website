@@ -170,6 +170,7 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-4">
+        After registering, pay within 2 hours to keep your slot.
         By registering, you agree to the event's terms and code of conduct.
         For security and follow-up, we record this device and its IP address with your registration.
       </p>
