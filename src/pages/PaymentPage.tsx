@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiZap, FiAlertCircle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw } from 'react-icons/fi'
+import { FiZap, FiAlertCircle, FiAlertTriangle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { QRCodeSVG } from 'qrcode.react'
@@ -340,6 +340,20 @@ export default function PaymentPage() {
                   <li>Paste the UPI ID and check the name shows <strong>{UPI_PAYEE_NAME}</strong></li>
                   <li>Pay <strong>₹{ENTRY_FEE}</strong> with note <span className="font-mono text-galaksi-100">{registrationId}</span></li>
                 </ol>
+              </div>
+
+              <div
+                role="note"
+                className="flex gap-2.5 p-3 rounded-xl text-xs text-amber-100"
+                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}
+              >
+                <FiAlertTriangle className="w-4 h-4 shrink-0 mt-px text-amber-300" />
+                <p>
+                  <strong>Payment failing?</strong> If your UPI app shows an error such as
+                  "server issue" or "bank not responding", please try again using a different
+                  bank account linked to your UPI app. Do not pay twice. If money was debited,
+                  wait for the transaction to settle before retrying.
+                </p>
               </div>
 
               <button
