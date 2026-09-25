@@ -44,7 +44,7 @@ const FILTERS: { key: 'review' | PaymentStatus | 'all'; label: string }[] = [
 ]
 
 const STATUS_STYLE: Record<PaymentStatus, { label: string; cls: string }> = {
-  pending:         { label: 'Unpaid',    cls: 'bg-gray-500/20 text-gray-300' },
+  pending:         { label: 'Unpaid',    cls: 'bg-gray-500/20 text-stone-300' },
   ticket_uploaded: { label: 'To review', cls: 'bg-amber-500/20 text-amber-300' },
   verified:        { label: 'Verified',  cls: 'bg-green-500/20 text-green-300' },
   rejected:        { label: 'Rejected',  cls: 'bg-red-500/20 text-red-300' },
@@ -63,7 +63,7 @@ export default function AdminPage() {
     return () => sub.subscription.unsubscribe()
   }, [])
 
-  if (checking) return <Shell><p className="text-gray-400 text-sm">Loading…</p></Shell>
+  if (checking) return <Shell><p className="text-stone-400 text-sm">Loading…</p></Shell>
   if (!session) return <Shell><LoginForm /></Shell>
   return <Dashboard email={session.user.email ?? ''} />
 }
@@ -91,7 +91,7 @@ function LoginForm() {
 
   return (
     <form onSubmit={submit} className="glass-card-dark p-6 space-y-4">
-      <h1 className="font-display font-extrabold text-2xl text-white">Organiser login</h1>
+      <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Organiser login</h1>
       <div>
         <label htmlFor="admin-email" className="label-galaksi">Email</label>
         <input id="admin-email" type="email" autoComplete="username" required
@@ -236,7 +236,7 @@ function Dashboard({ email }: { email: string }) {
     return (
       <Shell>
         <div className="glass-card-dark p-6 space-y-4 text-center">
-          <p className="text-white font-semibold">{email} is not an organiser account.</p>
+          <p className="text-galaksi-100 font-semibold">{email} is not an organiser account.</p>
           <button onClick={() => supabase.auth.signOut()} className="btn-outline-galaksi w-full">Sign out</button>
         </div>
       </Shell>
@@ -247,7 +247,7 @@ function Dashboard({ email }: { email: string }) {
     <div className="min-h-screen px-4 pt-20 pb-16 max-w-3xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <h1 className="font-display font-extrabold text-2xl text-white">Payments</h1>
+          <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Payments</h1>
           <span
             title={live ? 'Live — updates appear instantly' : 'Connecting…'}
             className={`w-2 h-2 rounded-full ${live ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}
@@ -281,7 +281,7 @@ function Dashboard({ email }: { email: string }) {
 
       {/* Search */}
       <div className="relative mb-3">
-        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
         <input
           type="search"
           value={query}
@@ -299,7 +299,7 @@ function Dashboard({ email }: { email: string }) {
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`shrink-0 px-4 min-h-[40px] rounded-full text-sm font-semibold transition-colors ${
-              filter === f.key ? 'bg-galaksi-100 text-galaksi-900' : 'bg-white/5 text-gray-300'
+              filter === f.key ? 'bg-galaksi-100 text-galaksi-900' : 'bg-white/5 text-stone-300'
             }`}
           >
             {f.label}
@@ -309,9 +309,9 @@ function Dashboard({ email }: { email: string }) {
       </div>
 
       {loading && teams.length === 0 ? (
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <p className="text-stone-400 text-sm">Loading…</p>
       ) : visible.length === 0 ? (
-        <p className="text-gray-400 text-sm py-8 text-center">Nothing here.</p>
+        <p className="text-stone-400 text-sm py-8 text-center">Nothing here.</p>
       ) : (
         <ul className="space-y-3">
           {visible.map((t) => (
@@ -361,29 +361,29 @@ function TeamCard({ team, onSetStatus, onVerify }: {
   }
 
   return (
-    <li className="rounded-2xl p-4" style={{ background: 'rgba(22,22,37,0.85)', border: '1px solid rgba(166,149,227,0.15)' }}>
+    <li className="rounded-2xl p-4" style={{ background: 'rgba(21,20,18,0.85)', border: '1px solid rgba(255,255,255,0.075)' }}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display font-bold text-white truncate">{team.team_name}</p>
-          <p className="font-mono text-xs text-gray-400">{team.registration_id}</p>
+          <p className="font-display font-bold text-galaksi-100 truncate">{team.team_name}</p>
+          <p className="font-mono text-xs text-stone-400">{team.registration_id}</p>
         </div>
         <div className="shrink-0 flex flex-col items-end gap-1">
           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${status.cls}`}>{status.label}</span>
-          {team.ticket_sent_at && <span className="text-[11px] text-gray-400">📧 Ticket sent</span>}
+          {team.ticket_sent_at && <span className="text-[11px] text-stone-400">📧 Ticket sent</span>}
         </div>
       </div>
 
       {team.payment_txn_id && (
-        <p className="mt-2 text-sm text-gray-300">
-          UTR <span className="font-mono text-white select-all">{team.payment_txn_id}</span>
+        <p className="mt-2 text-sm text-stone-300">
+          UTR <span className="font-mono text-galaksi-100 select-all">{team.payment_txn_id}</span>
         </p>
       )}
       {leader && (
-        <p className="mt-1 text-sm text-gray-300">
+        <p className="mt-1 text-sm text-stone-300">
           {leader.name} · <a href={`tel:${leader.phone}`} className="text-galaksi-300 underline">{leader.phone}</a>
         </p>
       )}
-      <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
+      <p className="mt-1 flex items-center gap-1.5 text-xs text-stone-400">
         <FiMonitor className="shrink-0" />
         <span className="truncate">
           {describeUserAgent(team.registered_user_agent)}
@@ -399,16 +399,16 @@ function TeamCard({ team, onSetStatus, onVerify }: {
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="mt-2 flex items-center gap-1 text-xs text-gray-400 min-h-[36px]"
+        className="mt-2 flex items-center gap-1 text-xs text-stone-400 min-h-[36px]"
         aria-expanded={open}
       >
         {team.members.length} members <FiChevronDown className={`transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <ul className="mt-1 space-y-2 text-xs text-gray-300">
+        <ul className="mt-1 space-y-2 text-xs text-stone-300">
           {team.members.map((m) => (
             <li key={m.email} className="p-2 rounded-lg bg-white/5">
-              <p className="text-white font-semibold">{m.name}{m.is_leader && ' 👑'}</p>
+              <p className="text-galaksi-100 font-semibold">{m.name}{m.is_leader && ' 👑'}</p>
               <p className="break-all">{m.email} · {m.phone}</p>
               <p>{m.college}</p>
             </li>
@@ -420,7 +420,7 @@ function TeamCard({ team, onSetStatus, onVerify }: {
         <button
           onClick={viewProof}
           disabled={!team.payment_screenshot_url}
-          className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl bg-white/5 text-sm text-white disabled:opacity-30"
+          className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl bg-white/5 text-sm text-galaksi-100 disabled:opacity-30"
         >
           <FiEye /> Proof
         </button>
@@ -457,7 +457,7 @@ function TeamCard({ team, onSetStatus, onVerify }: {
           <button
             onClick={verify}
             disabled={busy}
-            className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl bg-white/5 text-sm text-white disabled:opacity-30"
+            className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl bg-white/5 text-sm text-galaksi-100 disabled:opacity-30"
           >
             <FiMail /> {busy ? 'Sending…' : team.ticket_sent_at ? 'Resend email' : 'Send email'}
           </button>
@@ -470,8 +470,8 @@ function TeamCard({ team, onSetStatus, onVerify }: {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl p-3 text-center bg-white/5">
-      <p className="font-display font-bold text-lg text-white">{value}</p>
-      <p className="text-[11px] text-gray-400 uppercase tracking-wider">{label}</p>
+      <p className="font-display font-bold text-lg text-galaksi-100">{value}</p>
+      <p className="text-[11px] text-stone-400 uppercase tracking-wider">{label}</p>
     </div>
   )
 }
@@ -479,7 +479,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick} aria-label={label} title={label}
-      className="w-11 h-11 flex items-center justify-center rounded-full text-gray-300 hover:bg-white/10 active:bg-white/10">
+      className="w-11 h-11 flex items-center justify-center rounded-full text-stone-300 hover:bg-white/10 active:bg-white/10">
       {children}
     </button>
   )
@@ -496,7 +496,7 @@ function whatsappLink(team: AdminTeam): string {
     `Registration ID: ${team.registration_id}`,
     `Ticket: ${window.location.origin}/ticket/${team.registration_id}`,
     '',
-    'Show the ticket QR at check-in — 28 Sep 2026, 9:00 AM. The ticket has also been emailed to all members. See you there! 🔥',
+    'Show the ticket QR at check-in — 28 Sep 2026, 9:30 AM. The ticket has also been emailed to all members. See you there! 🔥',
   ].join('\n')
   return `https://wa.me/91${phone}?text=${encodeURIComponent(text)}`
 }

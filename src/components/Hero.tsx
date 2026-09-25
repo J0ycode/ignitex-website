@@ -1,7 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { FiZap, FiArrowRight, FiCalendar } from 'react-icons/fi'
+import { FiArrowRight } from 'react-icons/fi'
 import Countdown from './Countdown'
 import type { RegistrationStatus } from '../lib/registrationStatus'
 import { getRegistrationDates, MAX_TEAMS } from '../lib/registrationStatus'
@@ -15,320 +13,82 @@ interface HeroProps {
   loading: boolean
 }
 
+const FACTS = ['28–29 Sep 2026', 'Starts 9:30 AM', 'Teams of 2–4', `${MAX_TEAMS} teams max`, '₹100 per team']
+
 export default function Hero({ status, serverNow, teamCount, loading }: HeroProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-
-  // Particle ember canvas animation
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    // TradingBackground already animates behind everything; a second
-    // full-screen canvas is too heavy for phones / reduced-motion users.
-    if (window.matchMedia('(max-width: 640px), (prefers-reduced-motion: reduce)').matches) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-
-    const particles: Array<{
-      x: number; y: number; vx: number; vy: number;
-      size: number; alpha: number; color: string;
-    }> = []
-
-    const colors = ['#c9bbf0', '#a695e3', '#9383cc', '#F4F1FF', '#E2D8FF']
-
-    for (let i = 0; i < 80; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: -Math.random() * 0.6 - 0.2,
-        size: Math.random() * 2.5 + 0.5,
-        alpha: Math.random() * 0.6 + 0.2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      })
-    }
-
-    // Only animate while the hero is on screen, not while scrolling, and at 30fps
-    let animId = 0
-    let visible = true
-    let scrolling = false
-    let scrollTimer: number | undefined
-    let last = 0
-
-    const animate = (now: number = performance.now()) => {
-      animId = requestAnimationFrame(animate)
-      if (!visible || scrolling || now - last < 1000 / 30) return
-      const step = last ? Math.min((now - last) / (1000 / 60), 4) : 1
-      last = now
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      for (const p of particles) {
-        p.x += p.vx * step
-        p.y += p.vy * step
-        p.alpha -= 0.001 * step
-        if (p.y < 0 || p.alpha <= 0) {
-          p.x = Math.random() * canvas.width
-          p.y = canvas.height + 10
-          p.alpha = Math.random() * 0.6 + 0.2
-          p.vy = -Math.random() * 0.6 - 0.2
-        }
-        // Faint halo + core instead of shadowBlur (much cheaper per particle)
-        ctx.fillStyle = p.color
-        ctx.globalAlpha = p.alpha * 0.25
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.globalAlpha = p.alpha
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fill()
-      }
-      ctx.globalAlpha = 1
-    }
-    animate()
-
-    const io = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting })
-    io.observe(canvas)
-    const onScroll = () => {
-      scrolling = true
-      window.clearTimeout(scrollTimer)
-      scrollTimer = window.setTimeout(() => { scrolling = false }, 180)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-    window.addEventListener('resize', handleResize)
-    return () => {
-      cancelAnimationFrame(animId)
-      io.disconnect()
-      window.clearTimeout(scrollTimer)
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
   const dates = serverNow ? getRegistrationDates(serverNow) : null
 
-  const getCountdownTarget = (): { target: Date; label: string; variant: 'opening' | 'closing' | 'event' } | null => {
-    if (!dates || !serverNow) return null
+  const countdown = (() => {
+    if (!dates) return null
     switch (status) {
-      case 'before_open':
-        return { target: dates.registrationOpen, label: '⚡ Registration Opens In', variant: 'opening' }
-      case 'open':
-        return { target: dates.registrationClose, label: '🔥 Registration Closes In', variant: 'closing' }
+      case 'before_open': return { target: dates.registrationOpen, label: 'Registration opens in' }
+      case 'open':        return { target: dates.registrationClose, label: 'Registration closes in' }
       case 'closed':
-      case 'full':
-        return { target: dates.eventStart, label: '🚀 Event Starts In', variant: 'event' }
-      default:
-        return null
+      case 'full':        return { target: dates.eventStart, label: 'Event starts in' }
+      default:            return null
     }
-  }
-
-  const countdown = getCountdownTarget()
+  })()
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Particle canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }} />
+    <section className="relative min-h-[100svh] flex items-center">
+      <div className="w-full max-w-5xl mx-auto px-5 sm:px-8 pt-28 pb-20 text-center">
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <img src={txaLogo} alt="TXA" className="h-9 sm:h-11 object-contain" style={{ mixBlendMode: 'screen' }} />
+          <span className="text-sm text-stone-400">presents</span>
+        </div>
 
-      {/* Grid overlay */}
-      <div className="absolute inset-0 grid-overlay opacity-40" style={{ zIndex: 1 }} />
+        <h1 className="sr-only">igniteX Ideathon</h1>
+        <img
+          src={ignitexLogo}
+          alt=""
+          className="mx-auto w-full max-w-[19rem] sm:max-w-xl md:max-w-2xl object-contain"
+        />
+        <p className="mt-3 font-display font-extrabold uppercase tracking-[0.25em] text-lg sm:text-xl text-galaksi-100">
+          Ideathon
+        </p>
 
-      {/* Radial ember glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          zIndex: 1,
-          background: 'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(166,149,227,0.12) 0%, transparent 70%)',
-        }}
-      />
+        {/* Dots between items on wider screens; plain wrapped list on phones */}
+        <ul className="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm sm:text-base text-stone-300 sm:[&>li+li]:before:content-['·'] sm:[&>li+li]:before:mr-4 sm:[&>li+li]:before:text-stone-600">
+          {FACTS.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center pt-24 pb-16">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
-          style={{
-            background: 'rgba(166,149,227,0.1)',
-            border: '1px solid rgba(166,149,227,0.3)',
-          }}
-        >
-          <div className="w-2 h-2 rounded-full bg-galaksi-400 animate-beat" />
-          <span className="font-mono text-xs text-galaksi-300 font-medium uppercase tracking-widest">
-            Ideathon · 28–29 September 2026
-          </span>
-        </motion.div>
-
-        {/* Pre-header Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6 }}
-          className="flex flex-col items-center justify-center mb-6"
-        >
-          <img 
-            src={txaLogo} 
-            alt="TXA" 
-            className="h-16 sm:h-20 object-contain mb-3" 
-            style={{ mixBlendMode: 'screen' }} 
-          />
-          <p className="text-gray-400 text-xs sm:text-sm tracking-[0.2em] uppercase font-medium" style={{ fontFamily: '"Lexend", sans-serif' }}>
-            presents
-          </p>
-        </motion.div>
-
-        {/* Title Image */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          transition={{ delay: 0.2, duration: 0.8, type: 'spring', bounce: 0.4 }}
-          className="flex flex-col items-center justify-center mb-4 w-full"
-        >
-          <img 
-            src={ignitexLogo} 
-            alt="IgniteX" 
-            className="w-full max-w-[18rem] sm:max-w-lg md:max-w-2xl px-4 object-contain mb-2" 
-            style={{ 
-              filter: 'drop-shadow(0 0 40px rgba(166,149,227,0.4))'
-            }}
-          />
-          <span className="text-xl sm:text-2xl font-bold tracking-[0.3em] uppercase text-galaksi-200 mt-2" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-            Ideathon
-          </span>
-        </motion.div>
-
-
-
-        {/* Heartbeat line */}
-        <motion.div
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="flex justify-center mb-12"
-        >
-          <HeartbeatLine />
-        </motion.div>
-
-        {/* Countdown section */}
         {!loading && countdown && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="mb-12"
-          >
-            <Countdown
-              targetDate={countdown.target}
-              label={countdown.label}
-              variant={countdown.variant}
-            />
-          </motion.div>
+          <div className="mt-12">
+            <Countdown targetDate={countdown.target} label={countdown.label} />
+          </div>
         )}
 
-        {/* Status-aware CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.1 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           {status === 'open' && (
             <>
-              <Link to="/register" className="btn-galaksi flex items-center gap-2 text-base px-8 py-3.5">
-                <FiZap className="w-4 h-4" />
-                Register Your Team
-                <FiArrowRight className="w-4 h-4" />
+              <Link to="/register" className="btn-galaksi gap-2 text-base px-8 py-3.5 w-full sm:w-auto">
+                Register your team <FiArrowRight className="w-4 h-4" />
               </Link>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-galaksi-200 font-mono">
-                  <span className="text-galaksi-300 font-bold">{teamCount}</span>
-                  <span className="text-galaksi-200"> / {MAX_TEAMS} teams registered</span>
-                </span>
-              </div>
+              <p className="text-sm text-stone-400">
+                <span className="text-galaksi-100 font-semibold">{Math.max(MAX_TEAMS - teamCount, 0)}</span> of {MAX_TEAMS} slots left
+              </p>
             </>
           )}
           {status === 'before_open' && (
-            <div className="flex items-center gap-3 px-6 py-3.5 rounded-full"
-              style={{ background: 'rgba(201,187,240,0.08)', border: '1px solid rgba(201,187,240,0.2)' }}>
-              <FiCalendar className="text-galaksi-300 w-4 h-4" />
-              <span className="font-display text-sm text-galaksi-300 font-medium">
-                Registration opens {dates?.registrationOpen.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at 6:00 PM
-              </span>
-            </div>
+            <p className="text-base text-stone-300">
+              Registration opens <span className="text-galaksi-100 font-semibold">today at 6:00 PM</span>.
+            </p>
           )}
           {status === 'full' && (
-            <div className="px-8 py-3.5 rounded-full text-center"
-              style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.3)' }}>
-              <span className="font-display font-bold text-galaksi-300">🔥 All {MAX_TEAMS} slots filled!</span>
-              <p className="text-xs text-galaksi-400 mt-1">See you at the event on the 28th!</p>
-            </div>
+            <p className="text-base text-stone-300">
+              All {MAX_TEAMS} slots are taken. See you on the 28th.
+            </p>
           )}
           {status === 'closed' && (
-            <div className="px-8 py-3.5 rounded-full"
-              style={{ background: 'rgba(100,100,120,0.1)', border: '1px solid rgba(100,100,120,0.2)' }}>
-              <span className="font-display text-galaksi-300">Registration closed · Event begins soon</span>
-            </div>
+            <p className="text-base text-stone-300">Registration is closed. The event starts soon.</p>
           )}
-          {(status === 'event_active') && (
-            <div className="px-8 py-3.5 rounded-full animate-pulse-galaksi"
-              style={{ background: 'rgba(166,149,227,0.1)', border: '1px solid rgba(166,149,227,0.4)' }}>
-              <span className="font-display font-bold text-galaksi-300">🚀 igniteX is LIVE right now!</span>
-            </div>
+          {status === 'event_active' && (
+            <p className="text-base text-galaksi-100 font-semibold">igniteX is happening now.</p>
           )}
-        </motion.div>
-
+        </div>
       </div>
     </section>
-  )
-}
-
-function HeartbeatLine() {
-  return (
-    <svg viewBox="0 0 320 40" className="w-full max-w-[320px] h-auto opacity-70">
-      <motion.path
-        d="M0,20 L60,20 L75,5 L90,35 L105,5 L120,35 L135,20 L160,20 L175,8 L190,32 L205,15 L215,25 L225,20 L320,20"
-        fill="none"
-        stroke="url(#hbGrad)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{ duration: 1.5, ease: 'easeInOut', delay: 0.5 }}
-      />
-      <motion.path
-        d="M0,20 L60,20 L75,5 L90,35 L105,5 L120,35 L135,20 L160,20 L175,8 L190,32 L205,15 L215,25 L225,20 L320,20"
-        fill="none"
-        stroke="url(#hbGlowGrad)"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.3"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 0.3 }}
-        transition={{ duration: 1.5, ease: 'easeInOut', delay: 0.5 }}
-      />
-      <defs>
-        <linearGradient id="hbGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#a695e3" stopOpacity="0.2" />
-          <stop offset="50%" stopColor="#a695e3" stopOpacity="1" />
-          <stop offset="100%" stopColor="#9383cc" stopOpacity="0.2" />
-        </linearGradient>
-        <linearGradient id="hbGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#a695e3" stopOpacity="0" />
-          <stop offset="50%" stopColor="#c9bbf0" stopOpacity="1" />
-          <stop offset="100%" stopColor="#a695e3" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-    </svg>
   )
 }

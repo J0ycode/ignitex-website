@@ -44,7 +44,7 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
 
       // Lets "My Registration" find this team again on this device
       saveRegistration({ registration_id: registrationId, team_name: formData.teamName })
-      toast.success('🔥 Team registered successfully!')
+      toast.success('Team registered')
       onSuccess(registrationId)
     } catch (err: unknown) {
       console.error('Submission Error:', err)
@@ -64,17 +64,17 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
       exit={{ opacity: 0, x: -20 }}
     >
       <div className="mb-6">
-        <h2 className="font-display font-bold text-2xl text-white mb-1">Review & Submit</h2>
-        <p className="text-gray-500 text-sm">Confirm your team details before locking in</p>
+        <h2 className="font-display font-bold text-2xl text-galaksi-100 mb-1">Review and submit</h2>
+        <p className="text-stone-400 text-sm">Confirm your team details before locking in</p>
       </div>
 
       {/* Team name card */}
       <div className="p-4 rounded-xl mb-4"
-        style={{ background: 'rgba(166,149,227,0.06)', border: '1px solid rgba(166,149,227,0.2)' }}>
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-mono text-galaksi-400 uppercase tracking-widest mb-1">Team Name</p>
-            <p className="font-display font-bold text-xl text-white">{teamName}</p>
+            <p className="font-display font-bold text-xl text-galaksi-100">{teamName}</p>
           </div>
           <FiZap className="text-galaksi-500 w-6 h-6" />
         </div>
@@ -93,30 +93,30 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
             transition={{ delay: i * 0.08 }}
             className="p-4 rounded-xl"
             style={{
-              background: 'rgba(22,22,37,0.6)',
-              border: i === 0 ? '1px solid rgba(166,149,227,0.25)' : '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(21,20,18,0.6)',
+              border: i === 0 ? '1px solid rgba(255,255,255,0.125)' : '1px solid rgba(255,255,255,0.06)',
             }}
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{
-                  background: i === 0 ? 'rgba(166,149,227,0.2)' : 'rgba(255,255,255,0.05)',
-                  border: i === 0 ? '1px solid rgba(166,149,227,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                  background: i === 0 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                  border: i === 0 ? '1px solid rgba(255,107,26,0.4)' : '1px solid rgba(255,255,255,0.08)',
                 }}>
-                <span className="text-xs font-bold" style={{ color: i === 0 ? '#a695e3' : '#6b7280' }}>
-                  {i === 0 ? '👑' : i + 1}
+                <span className="text-xs font-bold" style={{ color: i === 0 ? '#FF6B1A' : '#6b7280' }}>
+                  {i + 1}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-display font-semibold text-white text-sm truncate">{member.name}</p>
+                <p className="font-display font-semibold text-galaksi-100 text-sm truncate">{member.name}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 mt-1.5">
-                  <span className="flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                  <span className="flex items-center gap-1.5 text-xs text-stone-400 truncate">
                     <FiMail className="w-3 h-3 flex-shrink-0" />{member.email}
                   </span>
-                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <span className="flex items-center gap-1.5 text-xs text-stone-400">
                     <FiPhone className="w-3 h-3 flex-shrink-0" />{member.phone}
                   </span>
-                  <span className="flex items-center gap-1.5 text-xs text-gray-500 truncate">
+                  <span className="flex items-center gap-1.5 text-xs text-stone-400 truncate">
                     <FiBook className="w-3 h-3 flex-shrink-0" />{member.college}
                   </span>
                 </div>
@@ -132,7 +132,7 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="p-4 rounded-xl mb-4 text-sm text-galaksi-400"
-          style={{ background: 'rgba(147,131,204,0.08)', border: '1px solid rgba(147,131,204,0.2)' }}
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
         >
           {error}
         </motion.div>
@@ -163,13 +163,13 @@ export default function StepReview({ formData, onBack, onSuccess }: StepReviewPr
           ) : (
             <>
               <FiCheck className="w-4 h-4" />
-              Confirm Registration
+              Confirm registration
             </>
           )}
         </motion.button>
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-4">
+      <p className="text-center text-xs text-stone-400 mt-4">
         After registering, pay within 2 hours to keep your slot.
         By registering, you agree to the event's terms and code of conduct.
         For security and follow-up, we record this device and its IP address with your registration.

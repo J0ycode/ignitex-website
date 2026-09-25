@@ -1,84 +1,38 @@
-import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import logo from '../assets/IngniteX.png'
 
 export default function Navbar() {
   const location = useLocation()
   // Hide the Register CTA where it's redundant or out of place
-  const isRegisterPage = location.pathname === '/register' || location.pathname === '/admin'
+  const hideRegister = location.pathname === '/register' || location.pathname === '/admin'
 
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50"
-      style={{
-        // Near-opaque instead of backdrop-filter: blurring an animated canvas
-        // behind a fixed bar re-rasterises every frame and tanks scroll FPS.
-        background: 'rgba(8, 8, 15, 0.95)',
-        borderBottom: '1px solid rgba(166,149,227, 0.1)',
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <img 
-            src={logo} 
-            alt="IgniteX" 
-            className="h-6 sm:h-8 object-contain" 
-            style={{ filter: 'drop-shadow(0 0 10px rgba(166,149,227,0.3))' }}
-          />
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-ink border-b border-ink-line">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center" aria-label="igniteX home">
+          <img src={logo} alt="igniteX" className="h-6 sm:h-7 object-contain" />
         </Link>
 
-        {/* Nav links */}
-        <div className="hidden sm:flex items-center gap-6">
-          <NavLink href="/#about">About</NavLink>
+        <div className="flex items-center gap-1 sm:gap-6">
+          <a href="/#about" className="hidden sm:inline text-sm text-stone-400 hover:text-galaksi-100 transition-colors">
+            About
+          </a>
+          <a href="/#how" className="hidden sm:inline text-sm text-stone-400 hover:text-galaksi-100 transition-colors">
+            How it works
+          </a>
           <Link
             to="/my-registration"
-            className="font-display text-sm font-medium text-gray-400 hover:text-galaksi-400 transition-colors duration-200"
+            className="px-3 sm:px-0 min-h-[44px] flex items-center text-sm text-stone-400 hover:text-galaksi-100 transition-colors"
           >
-            My Ticket
+            My ticket
           </Link>
-          {!isRegisterPage && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                to="/register"
-                className="btn-galaksi text-sm px-5 py-2.5"
-              >
-                Register Now
-              </Link>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Mobile: My Ticket + register button */}
-        <div className="sm:hidden flex items-center gap-1">
-          <Link
-            to="/my-registration"
-            className="px-3 min-h-[44px] flex items-center text-xs font-display font-medium text-gray-300"
-          >
-            My Ticket
-          </Link>
-          {!isRegisterPage && (
-            <Link to="/register" className="btn-galaksi text-xs px-4 py-2">
+          {!hideRegister && (
+            <Link to="/register" className="btn-galaksi text-sm px-4 py-2 sm:px-5 sm:py-2.5">
               Register
             </Link>
           )}
         </div>
       </div>
-    </motion.nav>
-  )
-}
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <a
-      href={href}
-      className="font-display text-sm font-medium text-gray-400 hover:text-galaksi-400 transition-colors duration-200"
-    >
-      {children}
-    </a>
+    </nav>
   )
 }

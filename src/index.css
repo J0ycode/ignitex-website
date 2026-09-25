@@ -16,127 +16,83 @@
   }
 
   body {
-    background-color: #05070D; /* matches App bg — no purple flash on iOS overscroll */
-    color: #F4F1FF;
-    font-family: 'Inter', sans-serif;
+    background-color: #0C0B0A;
+    color: #F5F1EA;
+    font-family: 'Inter', system-ui, sans-serif;
     overflow-x: hidden;
   }
 
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #4a4073;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #a695e3;
-    border-radius: 4px;
-  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0C0B0A; }
+  ::-webkit-scrollbar-thumb { background: #2A2724; border-radius: 4px; }
 
   ::selection {
-    background: rgba(166, 149, 227, 0.4);
+    background: rgba(255, 107, 26, 0.35);
     color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid #FF6B1A;
+    outline-offset: 2px;
   }
 }
 
 @layer components {
-  .glass-card-purple {
-    background: #8174B8;
-    border: 2px solid #9383cc;
-    border-radius: 32px;
-    box-shadow: 
-      inset 4px 4px 10px rgba(255, 255, 255, 0.2),
-      inset -4px -4px 10px rgba(74, 64, 115, 0.5),
-      8px 12px 24px rgba(59, 51, 92, 0.6);
-  }
-
+  /* Flat card: one surface colour, one hairline border. No glass, no glow. */
   .glass-card-dark {
-    background: #4A4073;
-    border: 2px solid #5b508c;
-    border-radius: 32px;
-    box-shadow: 
-      inset 4px 4px 10px rgba(129, 116, 184, 0.3),
-      inset -4px -4px 10px rgba(42, 36, 66, 0.6),
-      8px 12px 24px rgba(42, 36, 66, 0.8);
+    background: #151412;
+    border: 1px solid #2A2724;
+    border-radius: 20px;
   }
 
   .btn-galaksi {
-    @apply relative inline-flex items-center justify-center px-8 py-3 font-display font-bold rounded-full overflow-hidden transition-all duration-300;
-    background: #F4F1FF;
-    color: #5B508C;
-    box-shadow: 0 4px 14px rgba(59, 51, 92, 0.4);
-  }
-
-  @media (hover: hover) {
-    .btn-galaksi:hover {
-      background: #ffffff;
-      box-shadow: 0 6px 20px rgba(59, 51, 92, 0.6);
-      transform: translateY(-2px);
-    }
-
-    .btn-outline-galaksi:hover {
-      background: rgba(166, 149, 227, 0.15);
-      border-color: #c9bbf0;
-    }
-
-    .track-card:hover {
-      transform: translateY(-6px);
-    }
-  }
-
-  .btn-galaksi:active {
-    transform: translateY(0) scale(0.98);
+    @apply relative inline-flex items-center justify-center px-7 py-3 font-display font-bold rounded-xl transition-colors duration-150;
+    background: #FF6B1A;
+    color: #140A03;
   }
 
   .btn-outline-galaksi {
-    @apply relative inline-flex items-center justify-center px-8 py-3 font-display font-bold rounded-full overflow-hidden transition-all duration-300;
-    color: #F4F1FF;
-    border: 2px solid #a695e3;
+    @apply relative inline-flex items-center justify-center px-7 py-3 font-display font-semibold rounded-xl transition-colors duration-150;
+    color: #F5F1EA;
+    border: 1px solid #3A3632;
     background: transparent;
   }
 
+  @media (hover: hover) {
+    .btn-galaksi:hover { background: #FF7A2E; }
+    .btn-outline-galaksi:hover { border-color: #F5F1EA; }
+  }
+
+  .btn-galaksi:active,
+  .btn-outline-galaksi:active {
+    transform: scale(0.98);
+  }
+
   .input-galaksi {
-    @apply w-full px-5 py-4 rounded-2xl text-white placeholder:text-galaksi-200 transition-all duration-200;
-    background: #5B508C;
-    border: 2px solid #695c9a;
-    font-family: 'Inter', sans-serif;
+    @apply w-full px-4 py-3.5 rounded-xl text-galaksi-100 placeholder:text-stone-500 transition-colors duration-150;
+    background: #1D1B19;
+    border: 1px solid #34302C;
+    font-family: 'Inter', system-ui, sans-serif;
     outline: none;
-    box-shadow: inset 2px 2px 8px rgba(59, 51, 92, 0.4);
   }
 
   .input-galaksi:focus {
-    border-color: #a695e3;
-    box-shadow: inset 2px 2px 8px rgba(59, 51, 92, 0.4), 0 0 0 3px rgba(166, 149, 227, 0.2);
+    border-color: #FF6B1A;
   }
 
   .input-galaksi.error {
-    border-color: #ff8c8c;
-    box-shadow: 0 0 0 3px rgba(255, 140, 140, 0.2);
+    border-color: #F87171;
   }
 
   .label-galaksi {
-    @apply block text-sm font-semibold mb-2 ml-1;
-    color: #E2D8FF;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-
-  .step-indicator-dot {
-    @apply w-3 h-3 rounded-full transition-all duration-500;
-  }
-
-  .track-card {
-    @apply glass-card-purple p-6 transition-all duration-300 cursor-default;
+    @apply block text-sm font-semibold mb-2 text-galaksi-200;
   }
 }
 
 @layer utilities {
+  /* Kept for existing markup — now a plain accent colour, not a gradient */
   .text-gradient-galaksi {
-    background: linear-gradient(135deg, #F4F1FF 0%, #C9BBF0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #FF6B1A;
   }
 }
 
@@ -152,9 +108,8 @@
 
 /* Step progress bar */
 .step-progress-bar {
-  height: 4px;
+  height: 3px;
   border-radius: 2px;
-  background: linear-gradient(90deg, #a695e3, #c9bbf0);
-  box-shadow: 0 0 10px rgba(166, 149, 227, 0.6);
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #FF6B1A;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }

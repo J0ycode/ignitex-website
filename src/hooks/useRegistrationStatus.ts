@@ -32,7 +32,7 @@ export function useRegistrationStatus(): UseRegistrationStatusReturn {
     setServerNow(new Date())
   }, [])
 
-  // Initial fetch + refresh the slot count every 30s so "x / 15" stays live
+  // Initial fetch + refresh the slot count every 30s so "x / 25" stays live
   useEffect(() => {
     let isMounted = true
     syncTeamCount().then(() => {

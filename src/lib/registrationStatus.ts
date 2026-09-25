@@ -14,15 +14,15 @@ export const REGISTRATION_STATUS = {
 export type RegistrationStatus = typeof REGISTRATION_STATUS[keyof typeof REGISTRATION_STATUS]
 
 // Keep MAX_TEAMS and the registration window in sync with _reg_config() in
-// supabase/migrations/20260925170000_registration_window_6pm.sql — the server enforces them.
-export const MAX_TEAMS = 15
+// supabase/migrations/20260925190000_max_25_teams.sql — the server enforces them.
+export const MAX_TEAMS = 25
 
 // Fixed IST timestamps. Stable object identities, so countdown effects don't
 // reset every render.
 const REGISTRATION_DATES = {
   registrationOpen:  new Date('2026-09-25T18:00:00+05:30'),
-  registrationClose: new Date('2026-09-28T09:00:00+05:30'), // closes as the event starts
-  eventStart:        new Date('2026-09-28T09:00:00+05:30'),
+  registrationClose: new Date('2026-09-28T09:00:00+05:30'),
+  eventStart:        new Date('2026-09-28T09:30:00+05:30'),
   eventEnd:          new Date('2026-09-29T18:00:00+05:30'),
 } as const
 

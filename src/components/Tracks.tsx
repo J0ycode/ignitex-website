@@ -9,28 +9,28 @@ const TRACKS = [
     title: 'AI & Machine Learning',
     description: 'Build intelligent systems that learn, adapt, and transform industries. From LLM applications to computer vision breakthroughs.',
     tags: ['LLMs', 'CV', 'MLOps'],
-    color: '#a695e3',
+    color: '#FF6B1A',
   },
   {
     icon: FiGlobe,
     title: 'Web3 & Decentralized',
     description: 'Architect the decentralized future — DAOs, DeFi primitives, NFT utilities, and on-chain governance systems.',
     tags: ['Solidity', 'DeFi', 'DAOs'],
-    color: '#c9bbf0',
+    color: '#FF9A5C',
   },
   {
     icon: FiShield,
     title: 'Cybersecurity',
     description: 'Hack to protect. Build threat detection, zero-trust systems, or open-source security tooling that matters.',
     tags: ['Pen Testing', 'Zero Trust', 'SIEM'],
-    color: '#9383cc',
+    color: '#E2560D',
   },
   {
     icon: FiTrendingUp,
     title: 'FinTech & Commerce',
     description: 'Reimagine finance — payment rails, credit scoring, embedded finance, or novel ways to democratize capital.',
     tags: ['Payments', 'Credit', 'Open Banking'],
-    color: '#a695e3',
+    color: '#FF6B1A',
   },
   {
     icon: FiHeart,
@@ -44,7 +44,7 @@ const TRACKS = [
     title: 'DevTools & OSS',
     description: 'Build tools for builders. Developer productivity, open-source infra, CLI utilities, or observability platforms.',
     tags: ['DevEx', 'Infra', 'OSS'],
-    color: '#a695e3',
+    color: '#FF6B1A',
   },
 ]
 
@@ -75,10 +75,10 @@ export default function Tracks() {
           <span className="font-mono text-xs text-galaksi-400 uppercase tracking-widest mb-3 block">
             // Domains & Themes
           </span>
-          <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white mb-4">
+          <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-galaksi-100 mb-4">
             Choose Your <span className="text-gradient-galaksi">Track</span>
           </h2>
-          <p className="text-gray-400 max-w-lg mx-auto font-body">
+          <p className="text-stone-400 max-w-lg mx-auto font-body">
             Every great innovation starts with a problem worth solving. Pick your domain, gather your team, and ignite something extraordinary.
           </p>
         </motion.div>
@@ -102,7 +102,7 @@ export default function Tracks() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5 }}
-          className="text-center text-gray-600 text-sm mt-10 font-mono"
+          className="text-center text-stone-500 text-sm mt-10 font-mono"
         >
           * Open Innovation track available — build anything that sparks joy
         </motion.p>
@@ -128,10 +128,10 @@ function TrackCard({ track }: { track: typeof TRACKS[0] }) {
       >
         <Icon style={{ color: track.color }} className="w-5 h-5" />
       </div>
-      <h3 className="font-display font-bold text-lg text-white mb-2 group-hover:text-galaksi-300 transition-colors">
+      <h3 className="font-display font-bold text-lg text-galaksi-100 mb-2 group-hover:text-galaksi-300 transition-colors">
         {track.title}
       </h3>
-      <p className="text-gray-500 text-sm leading-relaxed mb-4">
+      <p className="text-stone-400 text-sm leading-relaxed mb-4">
         {track.description}
       </p>
       <div className="flex flex-wrap gap-2">

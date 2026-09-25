@@ -57,7 +57,7 @@ export default function TicketPage() {
   if (state === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="font-mono text-sm text-gray-400">Loading ticket…</p>
+        <p className="font-mono text-sm text-stone-400">Loading ticket…</p>
       </div>
     )
   }
@@ -67,8 +67,8 @@ export default function TicketPage() {
       <div className="min-h-screen flex items-center justify-center px-4 pt-16">
         <div className="max-w-sm w-full text-center space-y-4">
           <FiClock className="w-10 h-10 mx-auto text-galaksi-300" />
-          <h1 className="font-display font-extrabold text-2xl text-white">Ticket not ready yet</h1>
-          <p className="text-sm text-gray-300">
+          <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Ticket not ready yet</h1>
+          <p className="text-sm text-stone-300">
             Your ticket appears here once the organisers verify your payment. You'll also get it by email.
           </p>
           <Link to={`/payment?id=${registrationId}`} className="btn-outline-galaksi w-full min-h-[48px]">
@@ -83,20 +83,20 @@ export default function TicketPage() {
     <div className="min-h-screen flex justify-center px-4 pt-24 pb-16 print:pt-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         {/* Ticket card */}
-        <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: '#161625', border: '1px solid rgba(166,149,227,0.3)' }}>
+        <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: '#161625', border: '1px solid rgba(255,107,26,0.3)' }}>
           <div className="p-6">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-galaksi-300">igniteX Ideathon · Entry</p>
-            <h1 className="mt-1 font-display font-extrabold text-2xl text-white break-words">{ticket.team_name}</h1>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-300">
+            <h1 className="mt-1 font-display font-extrabold text-2xl text-galaksi-100 break-words">{ticket.team_name}</h1>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-300">
               <span className="flex items-center gap-1.5"><FiCalendar className="w-4 h-4" /> 28–29 Sep 2026</span>
-              <span className="flex items-center gap-1.5"><FiClock className="w-4 h-4" /> 9:00 AM</span>
+              <span className="flex items-center gap-1.5"><FiClock className="w-4 h-4" /> 9:30 AM</span>
             </div>
           </div>
 
           {/* Perforation */}
           <div className="relative h-6">
-            <div className="absolute -left-3 top-0 w-6 h-6 rounded-full" style={{ background: '#05070D' }} />
-            <div className="absolute -right-3 top-0 w-6 h-6 rounded-full" style={{ background: '#05070D' }} />
+            <div className="absolute -left-3 top-0 w-6 h-6 rounded-full" style={{ background: '#0C0B0A' }} />
+            <div className="absolute -right-3 top-0 w-6 h-6 rounded-full" style={{ background: '#0C0B0A' }} />
             <div className="absolute left-5 right-5 top-1/2 border-t-2 border-dashed border-white/10" />
           </div>
 
@@ -104,14 +104,14 @@ export default function TicketPage() {
             <div className="bg-white p-3 rounded-2xl">
               <QRCodeSVG value={window.location.href} size={200} level="M" />
             </div>
-            <p className="mt-3 font-mono text-xl tracking-[0.25em] text-white">{ticket.registration_id}</p>
-            <p className="text-xs text-gray-400">Show this at check-in</p>
+            <p className="mt-3 font-mono text-xl tracking-[0.25em] text-galaksi-100">{ticket.registration_id}</p>
+            <p className="text-xs text-stone-400">Show this at check-in</p>
 
             <ul className="mt-5 w-full space-y-2">
               {ticket.members.map((m) => (
                 <li key={m.name} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-white truncate">{m.name}{m.is_leader && ' 👑'}</span>
-                  <span className="text-gray-400 text-xs truncate">{m.college}</span>
+                  <span className="text-galaksi-100 truncate">{m.name}{m.is_leader && <span className="text-stone-500"> · leader</span>}</span>
+                  <span className="text-stone-400 text-xs truncate">{m.college}</span>
                 </li>
               ))}
             </ul>
@@ -130,7 +130,7 @@ export default function TicketPage() {
             <FiDownload /> Save
           </button>
         </div>
-        <p className="mt-3 text-center text-xs text-gray-400 print:hidden">
+        <p className="mt-3 text-center text-xs text-stone-400 print:hidden">
           Tip: take a screenshot — it works offline at the venue.
         </p>
       </motion.div>

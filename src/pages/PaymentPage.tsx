@@ -104,7 +104,7 @@ export default function PaymentPage() {
       await navigator.clipboard.writeText(UPI_ID)
       toast.success('UPI ID copied')
     } catch {
-      toast(`UPI ID: ${UPI_ID}`, { icon: '📋' })
+      toast(`UPI ID: ${UPI_ID}`)
     }
   }
 
@@ -192,11 +192,11 @@ export default function PaymentPage() {
             <FiAlertCircle className="w-8 h-8 text-red-400" />
           </div>
           <div>
-            <h1 className="font-display font-extrabold text-2xl text-white mb-2">Couldn't load payment</h1>
-            <p className="text-gray-300 text-sm">{error}</p>
+            <h1 className="font-display font-extrabold text-2xl text-galaksi-100 mb-2">Couldn't load your registration</h1>
+            <p className="text-stone-300 text-sm">{error}</p>
           </div>
-          <button onClick={loadTeam} className="btn-galaksi">Try Again</button>
-          <a href="/" className="block text-xs text-gray-400 hover:text-galaksi-400 transition-colors">
+          <button onClick={loadTeam} className="btn-galaksi">Try again</button>
+          <a href="/" className="block text-xs text-stone-400 hover:text-galaksi-400 transition-colors">
             ← Back to home
           </a>
         </motion.div>
@@ -213,7 +213,7 @@ export default function PaymentPage() {
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             className="w-10 h-10 rounded-full border-2 border-galaksi-500/30 border-t-galaksi-500"
           />
-          <p className="font-mono text-sm text-gray-400">Loading your registration…</p>
+          <p className="font-mono text-sm text-stone-400">Loading your registration…</p>
         </div>
       </div>
     )
@@ -229,14 +229,14 @@ export default function PaymentPage() {
         <div className="text-center">
           <div
             className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(166,149,227,0.15)', border: '1px solid rgba(166,149,227,0.3)' }}
+            style={{ background: 'rgba(255,255,255,0.075)', border: '1px solid rgba(255,107,26,0.3)' }}
           >
             <FiZap className="w-6 h-6 text-galaksi-400" />
           </div>
-          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white mb-2">
-            {isVerified ? 'Payment Verified 🎉' : isPaymentDone ? 'Under Verification' : 'Complete Payment'}
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100 mb-2">
+            {isVerified ? 'Payment verified' : isPaymentDone ? 'Under verification' : 'Complete payment'}
           </h1>
-          <p className="text-gray-300 text-sm">
+          <p className="text-stone-300 text-sm">
             {isVerified
               ? 'Your ticket has been emailed to your team.'
               : isPaymentDone
@@ -248,9 +248,9 @@ export default function PaymentPage() {
         {/* Summary card */}
         <div
           className="p-5 rounded-2xl space-y-3"
-          style={{ background: 'rgba(22,22,37,0.85)', border: '1px solid rgba(166,149,227,0.2)' }}
+          style={{ background: 'rgba(21,20,18,0.85)', border: '1px solid rgba(255,255,255,0.1)' }}
         >
-          <Row label="Team"><span className="font-display font-bold text-white truncate">{teamName}</span></Row>
+          <Row label="Team"><span className="font-display font-bold text-galaksi-100 truncate">{teamName}</span></Row>
           <Row label="Reg. ID"><span className="font-mono text-sm text-galaksi-300">{registrationId}</span></Row>
           <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <Row label="Amount"><span className="font-display font-black text-2xl text-galaksi-300">₹{ENTRY_FEE}</span></Row>
@@ -268,7 +268,7 @@ export default function PaymentPage() {
                 }}
               >
                 {hold.total > 0 ? (
-                  <>⏳ Pay within <span className="font-mono font-bold">
+                  <>Pay within <span className="font-mono font-bold">
                     {String(hold.hours).padStart(2, '0')}:{String(hold.minutes).padStart(2, '0')}:{String(hold.seconds).padStart(2, '0')}
                   </span> to keep your slot</>
                 ) : (
@@ -304,7 +304,7 @@ export default function PaymentPage() {
                 ))}
                 <a
                   href={upiPayUrl(registrationId)}
-                  className="flex items-center justify-center min-h-[44px] text-sm text-gray-300 underline underline-offset-4"
+                  className="flex items-center justify-center min-h-[44px] text-sm text-stone-300 underline underline-offset-4"
                 >
                   Other UPI app
                 </a>
@@ -313,14 +313,14 @@ export default function PaymentPage() {
               {/* Backup: always works, in any UPI app, whatever the default app is */}
               <div
                 className="p-3 rounded-xl space-y-3"
-                style={{ background: 'rgba(166,149,227,0.06)', border: '1px solid rgba(166,149,227,0.15)' }}
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.075)' }}
               >
-                <p className="text-xs text-gray-300 sm:hidden">Button not working? Pay manually to this UPI ID:</p>
+                <p className="text-xs text-stone-300 sm:hidden">Button not working? Pay manually to this UPI ID:</p>
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-mono uppercase tracking-widest text-gray-400">UPI ID</p>
-                    <p className="font-mono text-sm text-white truncate select-all">{UPI_ID}</p>
-                    <p className="text-xs text-gray-400 truncate">Paying to: {UPI_PAYEE_NAME}</p>
+                    <p className="text-[11px] font-mono uppercase tracking-widest text-stone-400">UPI ID</p>
+                    <p className="font-mono text-sm text-galaksi-100 truncate select-all">{UPI_ID}</p>
+                    <p className="text-xs text-stone-400 truncate">Paying to: {UPI_PAYEE_NAME}</p>
                   </div>
                   <button
                     type="button"
@@ -330,17 +330,17 @@ export default function PaymentPage() {
                     <FiCopy className="w-4 h-4" /> Copy
                   </button>
                 </div>
-                <ol className="text-xs text-gray-300 space-y-1 list-decimal list-inside">
+                <ol className="text-xs text-stone-300 space-y-1 list-decimal list-inside">
                   <li>Open GPay / PhonePe / Paytm → <strong>Pay UPI ID</strong></li>
                   <li>Paste the UPI ID and check the name shows <strong>{UPI_PAYEE_NAME}</strong></li>
-                  <li>Pay <strong>₹{ENTRY_FEE}</strong> with note <span className="font-mono text-white">{registrationId}</span></li>
+                  <li>Pay <strong>₹{ENTRY_FEE}</strong> with note <span className="font-mono text-galaksi-100">{registrationId}</span></li>
                 </ol>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowQr((s) => !s)}
-                className="sm:hidden w-full flex items-center justify-center gap-2 min-h-[44px] text-sm text-gray-300"
+                className="sm:hidden w-full flex items-center justify-center gap-2 min-h-[44px] text-sm text-stone-300"
               >
                 <FiGrid className="w-4 h-4" />
                 {showQr ? 'Hide QR code' : 'Paying from another phone? Show QR'}
@@ -348,7 +348,7 @@ export default function PaymentPage() {
 
               <div className={`${showQr ? 'flex' : 'hidden'} sm:flex flex-col items-center gap-2`}>
                 {/* Generated from the UPI intent, so amount + reg. ID note are pre-filled */}
-                <div className="p-3 bg-white rounded-xl border-2 border-galaksi-500 shadow-[0_0_20px_rgba(166,149,227,0.3)]">
+                <div className="p-3 bg-white rounded-xl">
                   <QRCodeSVG
                     value={upiPayUrl(registrationId)}
                     size={196}
@@ -357,7 +357,7 @@ export default function PaymentPage() {
                     aria-label={`UPI QR code to pay ₹${ENTRY_FEE} to ${UPI_ID}`}
                   />
                 </div>
-                <p className="text-xs text-gray-300 text-center max-w-[16rem]">
+                <p className="text-xs text-stone-300 text-center max-w-[16rem]">
                   Scan using the scanner <strong>inside</strong> GPay / PhonePe / Paytm — the
                   phone camera may open WhatsApp instead.
                 </p>
@@ -370,17 +370,17 @@ export default function PaymentPage() {
 
               <label
                 className="relative flex flex-col items-center justify-center gap-2 w-full min-h-[140px] rounded-2xl cursor-pointer text-center p-4 overflow-hidden"
-                style={{ border: '2px dashed rgba(166,149,227,0.35)', background: 'rgba(166,149,227,0.05)' }}
+                style={{ border: '2px dashed rgba(255,107,26,0.35)', background: 'rgba(255,255,255,0.025)' }}
               >
                 {preview ? (
                   <img src={preview} alt="Payment screenshot preview" className="max-h-56 rounded-lg object-contain" />
                 ) : file ? (
-                  <p className="text-sm text-white">📄 {file.name}</p>
+                  <p className="text-sm text-galaksi-100">{file.name}</p>
                 ) : (
                   <>
                     <FiUploadCloud className="w-8 h-8 text-galaksi-300" />
-                    <span className="text-sm font-semibold text-white">Tap to upload payment screenshot</span>
-                    <span className="text-xs text-gray-400">Screenshot (PNG/JPG) or PDF</span>
+                    <span className="text-sm font-semibold text-galaksi-100">Tap to upload payment screenshot</span>
+                    <span className="text-xs text-stone-400">Screenshot (PNG/JPG) or PDF</span>
                   </>
                 )}
                 <input
@@ -394,7 +394,7 @@ export default function PaymentPage() {
                 <button
                   type="button"
                   onClick={() => setFile(null)}
-                  className="flex items-center gap-1 text-xs text-gray-300 min-h-[36px]"
+                  className="flex items-center gap-1 text-xs text-stone-300 min-h-[36px]"
                 >
                   <FiX className="w-3.5 h-3.5" /> Remove file
                 </button>
@@ -413,7 +413,7 @@ export default function PaymentPage() {
                   placeholder="12-digit UPI reference number"
                   className={`input-galaksi ${utr && !utrValid ? 'error' : ''}`}
                 />
-                <p className="text-xs text-gray-400 mt-1 ml-1">
+                <p className="text-xs text-stone-400 mt-1 ml-1">
                   Find it under “UPI transaction ID” / “UTR” in your payment app.
                 </p>
               </div>
@@ -426,7 +426,7 @@ export default function PaymentPage() {
                 {uploadStep === 'compressing' ? 'Preparing image…'
                   : uploadStep === 'uploading' ? 'Uploading…'
                   : uploadStep === 'saving' ? 'Saving…'
-                  : 'Submit Payment Proof'}
+                  : 'Submit payment proof'}
               </button>
             </section>
           </>
@@ -446,7 +446,7 @@ export default function PaymentPage() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex justify-between items-center gap-4">
-      <span className="text-xs font-mono text-gray-400 uppercase tracking-widest shrink-0">{label}</span>
+      <span className="text-xs font-mono text-stone-400 uppercase tracking-widest shrink-0">{label}</span>
       {children}
     </div>
   )
@@ -454,7 +454,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 function StepLabel({ n, children }: { n: number; children: React.ReactNode }) {
   return (
-    <p className="flex items-center gap-2 font-display font-semibold text-white">
+    <p className="flex items-center gap-2 font-display font-semibold text-galaksi-100">
       <span className="w-6 h-6 rounded-full text-xs flex items-center justify-center bg-galaksi-500/30 text-galaksi-200">
         {n}
       </span>
@@ -477,20 +477,20 @@ function VerificationStatus({
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
       <ol
         className="p-5 rounded-2xl space-y-4"
-        style={{ background: 'rgba(22,22,37,0.85)', border: '1px solid rgba(166,149,227,0.2)' }}
+        style={{ background: 'rgba(21,20,18,0.85)', border: '1px solid rgba(255,255,255,0.1)' }}
       >
         {steps.map((s) => (
           <li key={s.label} className="flex items-center gap-3">
             <span
               className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center ${
-                s.done ? 'bg-green-500/25 text-green-300' : s.active ? 'bg-amber-500/20 text-amber-300' : 'bg-white/5 text-gray-500'
+                s.done ? 'bg-green-500/25 text-green-300' : s.active ? 'bg-amber-500/20 text-amber-300' : 'bg-white/5 text-stone-400'
               }`}
             >
               {s.done ? <FiCheck className="w-4 h-4" /> : s.active ? <FiClock className="w-4 h-4 animate-pulse" /> : <FiMail className="w-3.5 h-3.5" />}
             </span>
-            <span className={`text-sm ${s.done ? 'text-white' : s.active ? 'text-amber-200 font-semibold' : 'text-gray-400'}`}>
+            <span className={`text-sm ${s.done ? 'text-galaksi-100' : s.active ? 'text-amber-200 font-semibold' : 'text-stone-400'}`}>
               {s.label}
-              {s.active && <span className="block text-xs font-normal text-gray-400">Usually within a few hours</span>}
+              {s.active && <span className="block text-xs font-normal text-stone-400">Usually within a few hours</span>}
             </span>
           </li>
         ))}
@@ -510,7 +510,7 @@ function VerificationStatus({
             <FiRefreshCw className={checking ? 'animate-spin' : ''} />
             {checking ? 'Checking…' : 'Check status'}
           </button>
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-xs text-stone-400 text-center">
             Bookmark this page to check back anytime. The ticket goes to every member's email,
             and we'll also message the team leader on WhatsApp.
           </p>

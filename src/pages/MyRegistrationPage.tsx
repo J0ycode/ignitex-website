@@ -66,12 +66,12 @@ export default function MyRegistrationPage() {
     <div className="min-h-screen flex justify-center px-4 pt-24 pb-16">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-6">
         <div>
-          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white">My Registration</h1>
-          <p className="text-sm text-gray-300 mt-1">Check your payment status and get your ticket.</p>
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">My registration</h1>
+          <p className="text-sm text-stone-300 mt-1">Check your payment status and get your ticket.</p>
         </div>
 
         {loading ? (
-          <p className="text-sm text-gray-400">Loading…</p>
+          <p className="text-sm text-stone-400">Loading…</p>
         ) : regs.length > 0 ? (
           <ul className="space-y-3">
             {regs.map((r) => {
@@ -81,11 +81,11 @@ export default function MyRegistrationPage() {
                   <Link
                     to={s ? s.href(r.registration_id) : `/payment?id=${r.registration_id}`}
                     className="flex items-center gap-3 p-4 rounded-2xl active:bg-white/5"
-                    style={{ background: 'rgba(22,22,37,0.85)', border: '1px solid rgba(166,149,227,0.2)' }}
+                    style={{ background: 'rgba(21,20,18,0.85)', border: '1px solid rgba(255,255,255,0.1)' }}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="font-display font-bold text-white truncate">{r.team_name}</p>
-                      <p className="font-mono text-xs text-gray-400">{r.registration_id}</p>
+                      <p className="font-display font-bold text-galaksi-100 truncate">{r.team_name}</p>
+                      <p className="font-mono text-xs text-stone-400">{r.registration_id}</p>
                       {s && <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold ${s.cls}`}>{s.label}</span>}
                     </div>
                     <span className="flex items-center gap-1 text-sm text-galaksi-200 shrink-0">
@@ -97,7 +97,7 @@ export default function MyRegistrationPage() {
             })}
           </ul>
         ) : (
-          <p className="text-sm text-gray-300 p-4 rounded-2xl bg-white/5">
+          <p className="text-sm text-stone-300 p-4 rounded-2xl bg-white/5">
             No registration found on this device. If you registered on another phone, find it below.
           </p>
         )}
@@ -133,9 +133,9 @@ function RecoverForm({ onFound }: { onFound: (r: Registration[]) => void }) {
     <form
       onSubmit={submit}
       className="p-4 rounded-2xl space-y-3"
-      style={{ background: 'rgba(166,149,227,0.05)', border: '1px solid rgba(166,149,227,0.15)' }}
+      style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.075)' }}
     >
-      <p className="font-display font-semibold text-white text-sm">Registered on another device?</p>
+      <p className="font-display font-semibold text-galaksi-100 text-sm">Registered on another device?</p>
       <input
         type="email" inputMode="email" autoComplete="email" required
         value={email} onChange={(e) => setEmail(e.target.value)}

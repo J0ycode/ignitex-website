@@ -77,14 +77,14 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
       exit={{ opacity: 0, x: -20 }}
     >
       <div className="mb-6">
-        <h2 className="font-display font-bold text-2xl text-white mb-1">Team Details</h2>
-        <p className="text-gray-300 text-sm">2–4 members · Enter details carefully</p>
+        <h2 className="font-display font-bold text-2xl text-galaksi-100 mb-1">Team details</h2>
+        <p className="text-stone-300 text-sm">2–4 members · Enter details carefully</p>
       </div>
 
       <form onSubmit={handleSubmit(onNext)} className="space-y-6">
         {/* Team name */}
         <div>
-          <label htmlFor="teamName" className="label-galaksi">Team Name <span className="text-galaksi-500">*</span></label>
+          <label htmlFor="teamName" className="label-galaksi">Team name <span className="text-galaksi-500">*</span></label>
           <input
             {...register('teamName')}
             id="teamName"
@@ -94,7 +94,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
             className={`input-galaksi ${errors.teamName ? 'error' : ''}`}
           />
           {errors.teamName && (
-            <p className="text-galaksi-400 text-xs mt-1">{errors.teamName.message}</p>
+            <p className="text-red-400 text-xs mt-1">{errors.teamName.message}</p>
           )}
         </div>
 
@@ -102,7 +102,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
         <div>
           <div className="flex items-center justify-between mb-3">
             <label className="label-galaksi mb-0">Team Members</label>
-            <span className="text-xs font-mono text-gray-300">{fields.length} / 4</span>
+            <span className="text-xs font-mono text-stone-300">{fields.length} / 4</span>
           </div>
 
           <AnimatePresence>
@@ -115,24 +115,24 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                 transition={{ duration: 0.25 }}
                 className="mb-4 p-4 rounded-xl"
                 style={{
-                  background: 'rgba(22,22,37,0.6)',
+                  background: 'rgba(21,20,18,0.6)',
                   border: index === 0
-                    ? '1px solid rgba(166,149,227,0.35)'
-                    : '1px solid rgba(166,149,227,0.12)',
+                    ? '1px solid rgba(255,107,26,0.35)'
+                    : '1px solid rgba(255,255,255,0.06)',
                 }}
               >
                 {/* Member header */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-display text-sm font-semibold"
-                    style={{ color: index === 0 ? '#a695e3' : '#9ca3af' }}>
-                    {index === 0 ? '👑 Team Leader (You)' : `Member ${index + 1}`}
+                    style={{ color: index === 0 ? '#FF6B1A' : '#9ca3af' }}>
+                    {index === 0 ? 'Member 1 · team leader' : `Member ${index + 1}`}
                   </span>
                   {index > 0 && (
                     <button
                       type="button"
                       onClick={() => remove(index)}
                       aria-label={`Remove member ${index + 1}`}
-                      className="-m-2 w-11 h-11 flex items-center justify-center rounded-full text-gray-300 hover:text-galaksi-400 active:bg-white/10 transition-colors"
+                      className="-m-2 w-11 h-11 flex items-center justify-center rounded-full text-stone-300 hover:text-galaksi-400 active:bg-white/10 transition-colors"
                     >
                       <FiTrash2 className="w-4 h-4" />
                     </button>
@@ -143,7 +143,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                   {/* Name */}
                   <div>
                     <div className="relative">
-                      <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                      <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
                       <input
                         {...register(`members.${index}.name`)}
                         placeholder="Full Name"
@@ -155,14 +155,14 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       />
                     </div>
                     {errors.members?.[index]?.name && (
-                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].name?.message}</p>
+                      <p className="text-red-400 text-xs mt-1">{errors.members[index].name?.message}</p>
                     )}
                   </div>
 
                   {/* Email */}
                   <div>
                     <div className="relative">
-                      <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                      <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
                       <input
                         {...register(`members.${index}.email`)}
                         type="email"
@@ -176,14 +176,14 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       />
                     </div>
                     {errors.members?.[index]?.email && (
-                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].email?.message}</p>
+                      <p className="text-red-400 text-xs mt-1">{errors.members[index].email?.message}</p>
                     )}
                   </div>
 
                   {/* Phone */}
                   <div>
                     <div className="relative">
-                      <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                      <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
                       <input
                         {...register(`members.${index}.phone`)}
                         type="tel"
@@ -196,14 +196,14 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       />
                     </div>
                     {errors.members?.[index]?.phone && (
-                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].phone?.message}</p>
+                      <p className="text-red-400 text-xs mt-1">{errors.members[index].phone?.message}</p>
                     )}
                   </div>
 
                   {/* College */}
                   <div>
                     <div className="relative">
-                      <FiBook className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                      <FiBook className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
                       <input
                         {...register(`members.${index}.college`)}
                         placeholder="College / Institution"
@@ -214,7 +214,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
                       />
                     </div>
                     {errors.members?.[index]?.college && (
-                      <p className="text-galaksi-400 text-xs mt-1">{errors.members[index].college?.message}</p>
+                      <p className="text-red-400 text-xs mt-1">{errors.members[index].college?.message}</p>
                     )}
                   </div>
 
@@ -226,10 +226,10 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
 
           {/* Array-level error */}
           {errors.members?.root && (
-            <p className="text-galaksi-400 text-xs mt-1">{errors.members.root.message}</p>
+            <p className="text-red-400 text-xs mt-1">{errors.members.root.message}</p>
           )}
           {typeof errors.members?.message === 'string' && (
-            <p className="text-galaksi-400 text-xs mt-1">{errors.members.message}</p>
+            <p className="text-red-400 text-xs mt-1">{errors.members.message}</p>
           )}
 
           {/* Add member button */}
@@ -241,9 +241,9 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
               onClick={() => append(defaultMember(false))}
               className="w-full py-3 rounded-xl flex items-center justify-center gap-2 text-sm font-display font-medium transition-all duration-200"
               style={{
-                border: '1px dashed rgba(166,149,227,0.3)',
-                color: 'rgba(166,149,227,0.7)',
-                background: 'rgba(166,149,227,0.04)',
+                border: '1px dashed rgba(255,107,26,0.3)',
+                color: 'rgba(255,107,26,0.7)',
+                background: 'rgba(255,255,255,0.02)',
               }}
             >
               <FiPlus className="w-4 h-4" />
@@ -258,7 +258,7 @@ export default function StepTeamDetails({ initialValues, onNext }: StepTeamDetai
           whileTap={{ scale: 0.98 }}
           className="btn-galaksi w-full"
         >
-          Review & Submit →
+          Review details
         </motion.button>
       </form>
     </motion.div>

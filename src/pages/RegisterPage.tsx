@@ -8,7 +8,7 @@ import StepTeamDetails from '../components/steps/StepTeamDetails'
 import type { TeamFormValues } from '../components/steps/StepTeamDetails'
 import StepReview from '../components/steps/StepReview'
 import Countdown from '../components/Countdown'
-import { FiAlertOctagon, FiClock, FiLock, FiZap } from 'react-icons/fi'
+import { FiAlertOctagon, FiClock, FiLock } from 'react-icons/fi'
 
 const STEPS = ['Team Details', 'Review']
 
@@ -39,14 +39,14 @@ export default function RegisterPage() {
     return (
       <GateScreen
         icon={<FiClock className="w-8 h-8 text-galaksi-400" />}
-        title="Not Open Yet"
+        title="Not open yet"
         subtitle={`Registration opens on the 25th at 6:00 PM`}
-        accentColor="#c9bbf0"
+        accentColor="#FF9A5C"
       >
         {dates && (
           <Countdown
             targetDate={dates.registrationOpen}
-            label="Opens In"
+            label="Opens in"
             variant="opening"
           />
         )}
@@ -58,16 +58,16 @@ export default function RegisterPage() {
     return (
       <GateScreen
         icon={<FiAlertOctagon className="w-8 h-8 text-galaksi-400" />}
-        title="Registration Full"
+        title="Registration full"
         subtitle={`All ${MAX_TEAMS} teams have registered. We'll see you at the event!`}
-        accentColor="#9383cc"
+        accentColor="#E2560D"
       >
         <div className="flex flex-col items-center gap-2">
-          <p className="font-display text-4xl font-black text-white">{teamCount} / {MAX_TEAMS}</p>
-          <p className="text-sm text-gray-500">teams registered</p>
+          <p className="font-display text-4xl font-black text-galaksi-100">{teamCount} / {MAX_TEAMS}</p>
+          <p className="text-sm text-stone-400">teams registered</p>
         </div>
         {dates && (
-          <Countdown targetDate={dates.eventStart} label="Event Starts In" variant="event" />
+          <Countdown targetDate={dates.eventStart} label="Event starts in" variant="event" />
         )}
       </GateScreen>
     )
@@ -76,13 +76,13 @@ export default function RegisterPage() {
   if (status === 'closed' || status === 'event_active' || status === 'event_over') {
     return (
       <GateScreen
-        icon={<FiLock className="w-8 h-8 text-gray-400" />}
-        title="Registration Closed"
+        icon={<FiLock className="w-8 h-8 text-stone-400" />}
+        title="Registration closed"
         subtitle="The registration window has ended. Stay tuned for future events!"
         accentColor="#6b7280"
       >
         {dates && status === 'closed' && (
-          <Countdown targetDate={dates.eventStart} label="Event Starts In" variant="event" />
+          <Countdown targetDate={dates.eventStart} label="Event starts in" variant="event" />
         )}
       </GateScreen>
     )
@@ -92,26 +92,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 flex flex-col items-center justify-start">
       {/* Live slot counter */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-2 mb-8 px-4 py-2 rounded-full"
-        style={{ background: 'rgba(22,22,37,0.8)', border: '1px solid rgba(166,149,227,0.15)' }}
-      >
-        <div className="w-2 h-2 rounded-full bg-green-400 animate-beat" />
-        <span className="font-mono text-xs text-gray-400">
-          <span className="text-galaksi-400 font-bold">{teamCount}</span>
-          <span> / {MAX_TEAMS} teams registered</span>
+      <p className="flex items-center gap-2 mb-8 text-sm text-stone-400">
+        <span className="w-2 h-2 rounded-full bg-green-400 animate-beat" aria-hidden />
+        <span>
+          <span className="text-galaksi-100 font-semibold">{Math.max(MAX_TEAMS - teamCount, 0)}</span> of {MAX_TEAMS} slots left · closes 28 Sep, 9:00 AM
         </span>
-        {dates && (
-          <>
-            <span className="text-gray-700 mx-1">·</span>
-            <span className="font-mono text-xs text-gray-500">
-              closes 28th 9AM
-            </span>
-          </>
-        )}
-      </motion.div>
+      </p>
 
       {/* Form card */}
       <motion.div
@@ -120,16 +106,9 @@ export default function RegisterPage() {
         className="w-full max-w-lg"
       >
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #a695e3, #9383cc)' }}>
-              <FiZap className="text-white w-4 h-4" />
-            </div>
-            <span className="font-display font-bold text-xl text-white">ignite<span className="text-gradient-galaksi">X</span></span>
-          </div>
-          <h1 className="font-display font-extrabold text-3xl text-white">Register Your Team</h1>
-          <p className="text-gray-500 text-sm mt-1">{2 - step + 1} step{2 - step + 1 !== 1 ? 's' : ''} remaining</p>
+        <div className="mb-6">
+          <h1 className="font-display font-extrabold text-3xl text-galaksi-100">Register your team</h1>
+          <p className="text-stone-400 text-sm mt-1">{2 - step + 1} step{2 - step + 1 !== 1 ? 's' : ''} remaining</p>
         </div>
 
         <div className="glass-card-dark p-6 sm:p-8">
@@ -181,20 +160,16 @@ function GateScreen({
       >
         <div
           className="w-20 h-20 rounded-2xl mx-auto flex items-center justify-center"
-          style={{
-            background: `${accentColor}15`,
-            border: `2px solid ${accentColor}40`,
-            boxShadow: `0 0 30px ${accentColor}20`,
-          }}
+          style={{ background: '#151412', border: `1px solid ${accentColor}55` }}
         >
           {icon}
         </div>
         <div>
-          <h1 className="font-display font-extrabold text-3xl text-white mb-2">{title}</h1>
-          <p className="text-gray-500 text-sm">{subtitle}</p>
+          <h1 className="font-display font-extrabold text-3xl text-galaksi-100 mb-2">{title}</h1>
+          <p className="text-stone-400 text-sm">{subtitle}</p>
         </div>
         {children}
-        <a href="/" className="inline-block text-xs text-gray-600 hover:text-galaksi-400 transition-colors">
+        <a href="/" className="inline-block text-xs text-stone-500 hover:text-galaksi-400 transition-colors">
           ← Back to home
         </a>
       </motion.div>
@@ -211,7 +186,7 @@ function LoadingGate() {
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           className="w-10 h-10 rounded-full border-2 border-galaksi-500/30 border-t-galaksi-500"
         />
-        <p className="font-mono text-sm text-gray-600">Checking registration status…</p>
+        <p className="font-mono text-sm text-stone-500">Loading…</p>
       </div>
     </div>
   )
