@@ -46,11 +46,27 @@ Deno.serve(async (req) => {
     const db = createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'))
     const { data: team, error: teamErr } = await db
       .from('teams')
-      .select('id, registration_id, team_name, payment_status, members(name, email, phone, college, is_leader)')
+      .select('id, registration_id, team_name, payment_status, created_at, members(name, email, phone, college, is_leader)')
       .eq('registration_id', registration_id)
       .single()
     if (teamErr || !team) return json({ error: 'TEAM_NOT_FOUND' }, 404)
-    if (team.payment_status === 'pending') return json({ error: 'NO_PAYMENT_PROOF' }, 409)
+
+    // Organisers may verify a team with no uploaded proof (paid in cash / checked
+    // offline). If its unpaid 2-hour hold already lapsed, it only gets a slot
+    // when one is free — same rule as submit_payment.
+    if (team.payment_status === 'pending') {
+      const holdMs = 2 * 60 * 60 * 1000 // _slot_hold()
+      const holdsSlot = Date.now() - new Date(team.created_at).getTime() < holdMs
+      if (!holdsSlot) {
+        const [{ data: active, error: e1 }, { data: cfg, error: e2 }] = await Promise.all([
+          db.rpc('_active_team_count'),
+          db.rpc('_reg_config'),
+        ])
+        if (e1 || e2) throw e1 ?? e2
+        const max = (Array.isArray(cfg) ? cfg[0] : cfg)?.max_teams ?? 25
+        if (active >= max) return json({ error: 'SLOTS_FULL' }, 409)
+      }
+    }
 
     // ── 3. Mark verified (before emailing, so a mail failure can be retried) ─
     if (team.payment_status !== 'verified') {

@@ -233,7 +233,9 @@ function Dashboard({ email }: { email: string }) {
     }
     if (body?.emailed) toast.success(`${team.team_name} verified · ticket emailed`)
     else if (body?.verified) toast.error('Verified, but the email failed — tap "Resend email"', { duration: 6000 })
-    else toast.error(body?.error === 'NOT_ADMIN' ? 'Not an organiser account' : `Failed: ${body?.error ?? error?.message ?? 'unknown'}`)
+    else if (body?.error === 'NOT_ADMIN') toast.error('Not an organiser account')
+    else if (body?.error === 'SLOTS_FULL') toast.error(`${team.team_name}'s slot hold expired and all ${MAX_TEAMS} slots are taken — delete a team first`, { duration: 6000 })
+    else toast.error(`Failed: ${body?.error ?? error?.message ?? 'unknown'}`)
   }
 
   const counts = useMemo(() => {
@@ -361,6 +363,11 @@ function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
   const verify = async () => {
     const msg = team.payment_status === 'verified'
       ? `Resend the ticket email to ${team.team_name}?`
+      : team.payment_status === 'pending'
+      ? `${team.team_name} has NOT uploaded a screenshot or UTR.\n\n` +
+        `Verify anyway? Only do this if you've confirmed their ₹${ENTRY_FEE} ` +
+        `another way (cash, or found it in the payment history).\n\n` +
+        `The ticket will be emailed to ${team.members.length} members.`
       : `Verify ₹${ENTRY_FEE} from ${team.team_name}?\n\n` +
         `UTR: ${team.payment_txn_id ?? '—'}\n\n` +
         `Only confirm if this UTR appears in the payment history. ` +
@@ -454,7 +461,7 @@ function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
         </button>
         <button
           onClick={verify}
-          disabled={busy || team.payment_status === 'pending' || team.payment_status === 'verified'}
+          disabled={busy || team.payment_status === 'verified'}
           className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl bg-green-500/20 text-sm text-green-200 disabled:opacity-30"
         >
           <FiCheck /> {busy ? '…' : 'Verify'}
