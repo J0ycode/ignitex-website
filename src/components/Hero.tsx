@@ -50,32 +50,53 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
       })
     }
 
-    let animId: number
-    const animate = () => {
+    // Only animate while the hero is on screen, not while scrolling, and at 30fps
+    let animId = 0
+    let visible = true
+    let scrolling = false
+    let scrollTimer: number | undefined
+    let last = 0
+
+    const animate = (now: number = performance.now()) => {
+      animId = requestAnimationFrame(animate)
+      if (!visible || scrolling || now - last < 1000 / 30) return
+      const step = last ? Math.min((now - last) / (1000 / 60), 4) : 1
+      last = now
+
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      particles.forEach((p) => {
-        p.x += p.vx
-        p.y += p.vy
-        p.alpha -= 0.001
+      for (const p of particles) {
+        p.x += p.vx * step
+        p.y += p.vy * step
+        p.alpha -= 0.001 * step
         if (p.y < 0 || p.alpha <= 0) {
           p.x = Math.random() * canvas.width
           p.y = canvas.height + 10
           p.alpha = Math.random() * 0.6 + 0.2
           p.vy = -Math.random() * 0.6 - 0.2
         }
-        ctx.save()
-        ctx.globalAlpha = p.alpha
+        // Faint halo + core instead of shadowBlur (much cheaper per particle)
         ctx.fillStyle = p.color
-        ctx.shadowBlur = 6
-        ctx.shadowColor = p.color
+        ctx.globalAlpha = p.alpha * 0.25
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalAlpha = p.alpha
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
         ctx.fill()
-        ctx.restore()
-      })
-      animId = requestAnimationFrame(animate)
+      }
+      ctx.globalAlpha = 1
     }
     animate()
+
+    const io = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting })
+    io.observe(canvas)
+    const onScroll = () => {
+      scrolling = true
+      window.clearTimeout(scrollTimer)
+      scrollTimer = window.setTimeout(() => { scrolling = false }, 180)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
 
     const handleResize = () => {
       canvas.width = window.innerWidth
@@ -84,6 +105,9 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
     window.addEventListener('resize', handleResize)
     return () => {
       cancelAnimationFrame(animId)
+      io.disconnect()
+      window.clearTimeout(scrollTimer)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', handleResize)
     }
   }, [])
@@ -137,11 +161,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
             border: '1px solid rgba(166,149,227,0.3)',
           }}
         >
-          <motion.div
-            animate={{ scale: [1, 1.3, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-2 h-2 rounded-full bg-galaksi-400"
-          />
+          <div className="w-2 h-2 rounded-full bg-galaksi-400 animate-beat" />
           <span className="font-mono text-xs text-galaksi-300 font-medium uppercase tracking-widest">
             Ideathon · 28–29 September 2026
           </span>

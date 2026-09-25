@@ -107,10 +107,9 @@ export default function About() {
                         border: '2px solid rgba(166,149,227,0.4)',
                         boxShadow: '0 0 12px rgba(166,149,227,0.2)',
                       }}>
-                      <motion.div
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-                        className="w-3 h-3 rounded-full bg-galaksi-500"
+                      <div
+                        className="w-3 h-3 rounded-full bg-galaksi-500 animate-beat"
+                        style={{ animationDelay: `${i * 0.3}s` }}
                       />
                     </div>
                     {/* Content */}

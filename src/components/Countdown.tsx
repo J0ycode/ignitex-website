@@ -85,16 +85,8 @@ export default function Countdown({ targetDate, label, variant = 'opening' }: Co
 function Separator() {
   return (
     <div className="flex flex-col gap-2 pb-6">
-      <motion.div
-        animate={{ opacity: [1, 0.2, 1] }}
-        transition={{ duration: 1, repeat: Infinity }}
-        className="w-1.5 h-1.5 rounded-full bg-galaksi-500"
-      />
-      <motion.div
-        animate={{ opacity: [1, 0.2, 1] }}
-        transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
-        className="w-1.5 h-1.5 rounded-full bg-galaksi-500"
-      />
+      <div className="w-1.5 h-1.5 rounded-full bg-galaksi-500 animate-blink" />
+      <div className="w-1.5 h-1.5 rounded-full bg-galaksi-500 animate-blink" style={{ animationDelay: '0.3s' }} />
     </div>
   )
 }

@@ -140,15 +140,15 @@ export default function TradingBackground() {
       }
 
       ctx.strokeStyle = CONFIG.colors.chartLine;
-      ctx.lineWidth = 2;
-      
-      // Glow effect
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = CONFIG.colors.chartLine;
+
+      // Glow: a wide translucent stroke under the line. (shadowBlur on a
+      // full-width path every frame was the single most expensive draw.)
+      ctx.globalAlpha = 0.18;
+      ctx.lineWidth = 10;
       ctx.stroke();
-      
-      // Reset shadow
-      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 2;
+      ctx.stroke();
       
       // Draw subtle gradient fill under chart
       ctx.lineTo(w, h);
@@ -170,15 +170,11 @@ export default function TradingBackground() {
         ctx.beginPath();
         ctx.arc(p.x + offsetX, p.y + offsetY, p.r, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
-        
-        // Soft glowing orbs (shadowBlur per particle is expensive on phones)
-        ctx.shadowBlur = isTouch ? 0 : 10;
-        ctx.shadowColor = p.color;
         ctx.fill();
-        
+
         if (!prefersReducedMotion) {
-          p.x += p.vx;
-          p.y += p.vy;
+          p.x += p.vx * step;
+          p.y += p.vy * step;
           
           // Wrap around screen
           if (p.x < -20) p.x = w + 20;
@@ -187,10 +183,29 @@ export default function TradingBackground() {
           if (p.y > h + 20) p.y = -20;
         }
       });
-      ctx.shadowBlur = 0;
     };
 
-    const render = () => {
+    // Frame budget: 30fps on desktop, 24fps on phones, and no redraws at all
+    // while the user is scrolling (the canvas is fixed, so a frozen frame is
+    // invisible — and it frees the main thread + GPU for smooth scrolling).
+    const FRAME_MS = 1000 / (isTouch ? 24 : 30);
+    let last = 0;
+    let step = 1; // movement scale so speed is independent of frame rate
+    let scrolling = false;
+    let scrollTimer: number | undefined;
+    const onScroll = () => {
+      scrolling = true;
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => { scrolling = false; }, 180);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    const render = (now: number = performance.now()) => {
+      if (!document.hidden) rafId = requestAnimationFrame(render);
+      if (scrolling || now - last < FRAME_MS) return;
+      step = last ? Math.min((now - last) / (1000 / 60), 4) : 1;
+      last = now;
+
       // Easing mouse movement
       mouseX += (targetX - mouseX) * CONFIG.animation.mouseEasing;
       mouseY += (targetY - mouseY) * CONFIG.animation.mouseEasing;
@@ -203,16 +218,13 @@ export default function TradingBackground() {
       drawChart();
       drawParticles();
 
-      time += 0.01;
-      
-      // Only request next frame if tab is visible to save CPU/GPU
-      if (!document.hidden) {
-        rafId = requestAnimationFrame(render);
-      }
+      time += 0.01 * step;
     };
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
+        cancelAnimationFrame(rafId);
+        last = 0;
         render();
       } else {
         cancelAnimationFrame(rafId);
@@ -228,6 +240,8 @@ export default function TradingBackground() {
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(scrollTimer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);

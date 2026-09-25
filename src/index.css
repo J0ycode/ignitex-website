@@ -140,6 +140,16 @@
   }
 }
 
+/* Looping micro-animations — CSS (compositor thread) instead of JS, so they
+   never compete with scrolling. Only transform/opacity are animated. */
+@keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.animate-beat  { animation: beat 2s ease-in-out infinite; }
+.animate-blink { animation: blink 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-beat, .animate-blink { animation: none; }
+}
+
 /* Step progress bar */
 .step-progress-bar {
   height: 4px;

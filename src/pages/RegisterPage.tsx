@@ -98,11 +98,7 @@ export default function RegisterPage() {
         className="flex items-center gap-2 mb-8 px-4 py-2 rounded-full"
         style={{ background: 'rgba(22,22,37,0.8)', border: '1px solid rgba(166,149,227,0.15)' }}
       >
-        <motion.div
-          animate={{ scale: [1, 1.3, 1] }}
-          transition={{ duration: 1, repeat: Infinity }}
-          className="w-2 h-2 rounded-full bg-green-400"
-        />
+        <div className="w-2 h-2 rounded-full bg-green-400 animate-beat" />
         <span className="font-mono text-xs text-gray-400">
           <span className="text-galaksi-400 font-bold">{teamCount}</span>
           <span> / {MAX_TEAMS} teams registered</span>

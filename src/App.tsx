@@ -47,7 +47,6 @@ export default function App() {
               borderRadius: '12px',
               fontFamily: '"Inter", sans-serif',
               fontSize: '14px',
-              backdropFilter: 'blur(10px)',
             },
             success: {
               iconTheme: { primary: '#a695e3', secondary: '#fff' },

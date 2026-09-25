@@ -15,8 +15,9 @@ export default function Navbar() {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: 'rgba(8, 8, 15, 0.85)',
-        backdropFilter: 'blur(20px)',
+        // Near-opaque instead of backdrop-filter: blurring an animated canvas
+        // behind a fixed bar re-rasterises every frame and tanks scroll FPS.
+        background: 'rgba(8, 8, 15, 0.95)',
         borderBottom: '1px solid rgba(166,149,227, 0.1)',
       }}
     >
