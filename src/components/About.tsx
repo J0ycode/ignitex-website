@@ -10,8 +10,8 @@ const STATS = [
 ]
 
 const TIMELINE = [
-  { date: '25th 12:00 PM', event: 'Registration Opens', status: 'upcoming' },
-  { date: '26th 12:00 PM', event: 'Registration Closes', status: 'upcoming' },
+  { date: '25th 6:00 PM', event: 'Registration Opens', status: 'upcoming' },
+  { date: '28th 9:00 AM', event: 'Registration Closes', status: 'upcoming' },
   { date: '28th 9:00 AM', event: 'Ideathon Begins', status: 'upcoming' },
   { date: '29th 6:00 PM', event: 'Submissions Due', status: 'upcoming' },
 ]

@@ -241,7 +241,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
               style={{ background: 'rgba(201,187,240,0.08)', border: '1px solid rgba(201,187,240,0.2)' }}>
               <FiCalendar className="text-galaksi-300 w-4 h-4" />
               <span className="font-display text-sm text-galaksi-300 font-medium">
-                Registration opens {dates?.registrationOpen.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at 12:00 PM
+                Registration opens {dates?.registrationOpen.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at 6:00 PM
               </span>
             </div>
           )}

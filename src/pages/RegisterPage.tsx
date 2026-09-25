@@ -40,7 +40,7 @@ export default function RegisterPage() {
       <GateScreen
         icon={<FiClock className="w-8 h-8 text-galaksi-400" />}
         title="Not Open Yet"
-        subtitle={`Registration opens on the 25th at 12:00 PM`}
+        subtitle={`Registration opens on the 25th at 6:00 PM`}
         accentColor="#c9bbf0"
       >
         {dates && (
@@ -111,7 +111,7 @@ export default function RegisterPage() {
           <>
             <span className="text-gray-700 mx-1">·</span>
             <span className="font-mono text-xs text-gray-500">
-              closes 26th 12PM
+              closes 28th 9AM
             </span>
           </>
         )}
