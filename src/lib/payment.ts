@@ -1,6 +1,6 @@
-export const UPI_ID = '7994974679@ptaxis'
+export const UPI_ID = 'mohamedazzam3880@okaxis'
 // Must match the account holder — payers see this name in their UPI app.
-export const UPI_PAYEE_NAME = 'Hima Jaihin S S'
+export const UPI_PAYEE_NAME = 'Mohamed Azzam'
 export const ENTRY_FEE = 100
 
 function upiQuery(registrationId: string) {
