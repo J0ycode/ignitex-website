@@ -65,11 +65,11 @@ export function chime() {
 export function localNotify(title: string, body: string, tag?: string) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return
   try {
-    const n = new Notification(title, { body, tag, icon: '/favicon.png' })
+    const n = new Notification(title, { body, tag, icon: '/icons/icon-192.png' })
     n.onclick = () => { window.focus(); n.close() }
   } catch {
     // Android Chrome only allows notifications via the service worker
-    navigator.serviceWorker?.getRegistration().then((r) => r?.showNotification(title, { body, tag, icon: '/favicon.png' }))
+    navigator.serviceWorker?.getRegistration().then((r) => r?.showNotification(title, { body, tag, icon: '/icons/icon-192.png' }))
   }
 }
 

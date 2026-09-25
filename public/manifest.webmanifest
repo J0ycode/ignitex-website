@@ -1,0 +1,16 @@
+{
+  "name": "igniteX Ideathon",
+  "short_name": "igniteX",
+  "description": "igniteX Ideathon · 28–29 Sep 2026 — register, pay and get your ticket.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0C0B0A",
+  "theme_color": "#0C0B0A",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

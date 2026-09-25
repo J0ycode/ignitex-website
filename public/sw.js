@@ -9,8 +9,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || 'New activity',
-      icon: '/favicon.png',
-      badge: '/favicon.png',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
       tag: data.tag,
       renotify: true,
       data: { url: data.url || '/admin' },

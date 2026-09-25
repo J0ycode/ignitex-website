@@ -54,6 +54,20 @@ export default function AdminPage() {
   const [session, setSession] = useState<Session | null>(null)
   const [checking, setChecking] = useState(true)
 
+  // "Add to Home Screen" from here installs an app that opens /admin
+  // (needed for push alerts on iPhone, which only work in Home Screen apps)
+  useEffect(() => {
+    const manifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
+    const title = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-title"]')
+    const prev = { href: manifest?.getAttribute('href'), title: title?.content }
+    manifest?.setAttribute('href', '/admin.webmanifest')
+    if (title) title.content = 'igniteX Admin'
+    return () => {
+      if (manifest && prev.href) manifest.setAttribute('href', prev.href)
+      if (title && prev.title) title.content = prev.title
+    }
+  }, [])
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
