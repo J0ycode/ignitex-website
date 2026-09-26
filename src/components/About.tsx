@@ -27,7 +27,7 @@ const STEPS = [
 export default function About() {
   return (
     <>
-      <section id="about" className="px-5 sm:px-8 lg:px-12 py-20 sm:py-28 border-t border-ink-line">
+      <section id="about" className="scroll-mt-16 px-5 sm:px-8 lg:px-12 py-20 sm:py-28 border-t border-ink-line">
         <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
           <div>
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-galaksi-100 leading-tight">
@@ -71,7 +71,7 @@ export default function About() {
         </div>
       </section>
 
-      <section id="how" className="px-5 sm:px-8 lg:px-12 py-20 sm:py-24 border-t border-ink-line">
+      <section id="how" className="scroll-mt-16 px-5 sm:px-8 lg:px-12 py-20 sm:py-24 border-t border-ink-line">
         <div className="max-w-7xl mx-auto">
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-galaksi-100">How to register</h2>
           <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
