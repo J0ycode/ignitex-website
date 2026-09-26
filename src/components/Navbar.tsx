@@ -8,7 +8,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-ink border-b border-ink-line">
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center" aria-label="igniteX home">
           <img src={logo} alt="igniteX" className="h-6 sm:h-7 object-contain" />
         </Link>

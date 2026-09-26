@@ -31,7 +31,7 @@ export default function Hero({ status, serverNow, teamCount, loading }: HeroProp
 
   return (
     <section className="relative min-h-[100svh] flex items-center">
-      <div className="w-full max-w-5xl mx-auto px-5 sm:px-8 pt-28 pb-20 text-center">
+      <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 pt-28 pb-20 text-center">
         <div className="flex items-center justify-center gap-3 mb-8">
           <img src={txaLogo} alt="TXA" className="h-9 sm:h-11 object-contain" style={{ mixBlendMode: 'screen' }} />
           <span className="text-sm text-stone-400">presents</span>

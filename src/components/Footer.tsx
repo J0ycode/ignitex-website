@@ -4,8 +4,8 @@ import { CONTACTS, formatPhone, whatsappUrl } from '../lib/contacts'
 
 export default function Footer() {
   return (
-    <footer className="px-5 sm:px-8 py-10 border-t border-ink-line">
-      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-sm text-stone-400">
+    <footer className="px-5 sm:px-8 lg:px-12 py-10 border-t border-ink-line">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-sm text-stone-400">
         <div className="flex items-center gap-3">
           <img src={txaLogo} alt="TXA" className="h-7 object-contain" style={{ mixBlendMode: 'screen' }} />
           <span>igniteX Ideathon · 28–29 September 2026</span>

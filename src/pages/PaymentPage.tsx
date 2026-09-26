@@ -247,12 +247,13 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center px-4 pt-24 pb-16">
+    <div className="min-h-screen flex justify-center px-4 sm:px-8 lg:px-12 pt-24 pb-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full space-y-6"
+        className={`w-full space-y-6 ${isPaymentDone ? 'max-w-2xl' : 'max-w-md lg:max-w-6xl'}`}
       >
+        <div className="w-full max-w-2xl mx-auto space-y-6">
         <div className="text-center">
           <div
             className="w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center"
@@ -284,6 +285,8 @@ export default function PaymentPage() {
           </div>
         </div>
 
+        </div>
+
         {!isPaymentDone ? (
           <>
             {holdExpiresAt && (
@@ -312,6 +315,7 @@ export default function PaymentPage() {
                 or contact the organisers.
               </div>
             )}
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-start">
             {/* Step 1: pay */}
             <section className="space-y-3">
               <StepLabel n={1}>Pay ₹{ENTRY_FEE}</StepLabel>
@@ -508,6 +512,7 @@ export default function PaymentPage() {
                   : 'Submit payment proof'}
               </button>
             </section>
+            </div>
           </>
         ) : (
           <VerificationStatus
@@ -518,7 +523,9 @@ export default function PaymentPage() {
           />
         )}
 
+        <div className="w-full max-w-2xl mx-auto">
         <HelpContacts context={`Team ${teamName}, registration ID ${registrationId}.`} />
+        </div>
       </motion.div>
     </div>
   )

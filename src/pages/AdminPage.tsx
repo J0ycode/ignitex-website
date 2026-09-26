@@ -273,7 +273,7 @@ function Dashboard({ email }: { email: string }) {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-20 pb-16 max-w-3xl mx-auto">
+    <div className="min-h-screen px-4 sm:px-8 lg:px-12 pt-20 pb-16 max-w-7xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Payments</h1>
@@ -342,7 +342,7 @@ function Dashboard({ email }: { email: string }) {
       ) : visible.length === 0 ? (
         <p className="text-stone-400 text-sm py-8 text-center">Nothing here.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 items-start">
           {visible.map((t) => (
             <TeamCard key={t.registration_id} team={t} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} />
           ))}

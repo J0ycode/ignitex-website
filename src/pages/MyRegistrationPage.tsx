@@ -65,7 +65,7 @@ export default function MyRegistrationPage() {
 
   return (
     <div className="min-h-screen flex justify-center px-4 pt-24 pb-16">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md space-y-6">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-2xl space-y-6">
         <div>
           <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">My registration</h1>
           <p className="text-sm text-stone-300 mt-1">Check your payment status and get your ticket.</p>
