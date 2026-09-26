@@ -320,7 +320,7 @@ export default function PaymentPage() {
                   opens the *default* UPI app (often WhatsApp) — so target each app. */}
               <div className="space-y-2">
                 <p className="hidden sm:block text-xs text-stone-400">
-                  These buttons open the app on a phone. On a computer, use the UPI ID or scan the QR below.
+                  These buttons open the app on a phone. On a computer, scan the QR or use the UPI ID below.
                 </p>
                 {upiAppLinks(registrationId).map((app, i) => (
                   <a
@@ -332,6 +332,52 @@ export default function PaymentPage() {
                     Pay with {app.name}
                   </a>
                 ))}
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.075)' }}
+              >
+              <button
+                type="button"
+                onClick={() => setShowQr((s) => !s)}
+                aria-expanded={showQr}
+                className="w-full flex items-center justify-between gap-2 px-4 min-h-[52px] text-sm font-semibold text-galaksi-100 active:bg-white/5"
+              >
+                <span className="flex items-center gap-2">
+                  <FiGrid className="w-4 h-4" /> Scan QR and pay
+                </span>
+                <FiChevronDown className={`w-4 h-4 transition-transform ${showQr ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div className={`${showQr ? 'flex' : 'hidden'} flex-col items-center gap-2 px-4 pb-4`}>
+                {/* Generated from the UPI intent, so amount + reg. ID note are pre-filled */}
+                <div className="p-3 bg-white rounded-xl">
+                  <QRCodeCanvas
+                    ref={qrRef}
+                    value={upiPayUrl(registrationId)}
+                    size={196}
+                    level="M"
+                    role="img"
+                    aria-label={`UPI QR code to pay ₹${ENTRY_FEE} to ${UPI_ID}`}
+                  />
+                </div>
+                <p className="text-xs text-stone-400">{UPI_PAYEE_NAME} · ₹{ENTRY_FEE}</p>
+                <button
+                  type="button"
+                  onClick={saveQr}
+                  className="flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-semibold text-galaksi-200 border border-galaksi-400/40 active:bg-white/10"
+                >
+                  <FiDownload className="w-4 h-4" /> Download QR
+                </button>
+                <p className="text-xs text-stone-300 text-center max-w-[18rem]">
+                  <span className="sm:hidden">
+                    On this phone: save the QR, then in GPay / PhonePe / Paytm tap
+                    <strong> Scan QR → upload from gallery</strong>.{' '}
+                  </span>
+                  Scan using the scanner <strong>inside</strong> your UPI app — the
+                  phone camera may open WhatsApp instead.
+                </p>
+              </div>
+              </div>
                 <a
                   href={upiPayUrl(registrationId)}
                   className="flex items-center justify-center min-h-[44px] text-sm text-stone-300 underline underline-offset-4"
@@ -394,53 +440,6 @@ export default function PaymentPage() {
                     ))}
                   </p>
                 </div>
-              </div>
-
-              <div
-                className="rounded-xl overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.075)' }}
-              >
-              <button
-                type="button"
-                onClick={() => setShowQr((s) => !s)}
-                aria-expanded={showQr}
-                className="w-full flex items-center justify-between gap-2 px-4 min-h-[52px] text-sm font-semibold text-galaksi-100 active:bg-white/5"
-              >
-                <span className="flex items-center gap-2">
-                  <FiGrid className="w-4 h-4" /> Scan QR and pay
-                </span>
-                <FiChevronDown className={`w-4 h-4 transition-transform ${showQr ? 'rotate-180' : ''}`} />
-              </button>
-
-              <div className={`${showQr ? 'flex' : 'hidden'} flex-col items-center gap-2 px-4 pb-4`}>
-                {/* Generated from the UPI intent, so amount + reg. ID note are pre-filled */}
-                <div className="p-3 bg-white rounded-xl">
-                  <QRCodeCanvas
-                    ref={qrRef}
-                    value={upiPayUrl(registrationId)}
-                    size={196}
-                    level="M"
-                    role="img"
-                    aria-label={`UPI QR code to pay ₹${ENTRY_FEE} to ${UPI_ID}`}
-                  />
-                </div>
-                <p className="text-xs text-stone-400">{UPI_PAYEE_NAME} · ₹{ENTRY_FEE}</p>
-                <button
-                  type="button"
-                  onClick={saveQr}
-                  className="flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-semibold text-galaksi-200 border border-galaksi-400/40 active:bg-white/10"
-                >
-                  <FiDownload className="w-4 h-4" /> Download QR
-                </button>
-                <p className="text-xs text-stone-300 text-center max-w-[18rem]">
-                  <span className="sm:hidden">
-                    On this phone: save the QR, then in GPay / PhonePe / Paytm tap
-                    <strong> Scan QR → upload from gallery</strong>.{' '}
-                  </span>
-                  Scan using the scanner <strong>inside</strong> your UPI app — the
-                  phone camera may open WhatsApp instead.
-                </p>
-              </div>
               </div>
             </section>
 
