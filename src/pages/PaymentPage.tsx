@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiZap, FiAlertCircle, FiAlertTriangle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw, FiDownload } from 'react-icons/fi'
+import { FiZap, FiAlertCircle, FiAlertTriangle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw, FiDownload, FiChevronDown } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { QRCodeCanvas } from 'qrcode.react'
@@ -37,6 +37,7 @@ export default function PaymentPage() {
   const [checking, setChecking] = useState(false)
   const [holdExpiresAt, setHoldExpiresAt] = useState<Date | null>(null)
   const hold = useCountdown(holdExpiresAt)
+  const [showQr, setShowQr]       = useState(false)
   const qrRef = useRef<HTMLCanvasElement>(null)
   const [wasRejected, setWasRejected] = useState(false)
 
@@ -392,10 +393,23 @@ export default function PaymentPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-2 pt-1">
-                <p className="flex items-center gap-2 text-sm font-semibold text-galaksi-100">
-                  <FiGrid className="w-4 h-4" /> Or pay by QR code
-                </p>
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.075)' }}
+              >
+              <button
+                type="button"
+                onClick={() => setShowQr((s) => !s)}
+                aria-expanded={showQr}
+                className="w-full flex items-center justify-between gap-2 px-4 min-h-[52px] text-sm font-semibold text-galaksi-100 active:bg-white/5"
+              >
+                <span className="flex items-center gap-2">
+                  <FiGrid className="w-4 h-4" /> Scan QR and pay
+                </span>
+                <FiChevronDown className={`w-4 h-4 transition-transform ${showQr ? 'rotate-180' : ''}`} />
+              </button>
+
+              <div className={`${showQr ? 'flex' : 'hidden'} flex-col items-center gap-2 px-4 pb-4`}>
                 {/* Generated from the UPI intent, so amount + reg. ID note are pre-filled */}
                 <div className="p-3 bg-white rounded-xl">
                   <QRCodeCanvas
@@ -411,9 +425,9 @@ export default function PaymentPage() {
                 <button
                   type="button"
                   onClick={saveQr}
-                  className="sm:hidden flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-semibold text-galaksi-200 border border-galaksi-400/40 active:bg-white/10"
+                  className="flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-semibold text-galaksi-200 border border-galaksi-400/40 active:bg-white/10"
                 >
-                  <FiDownload className="w-4 h-4" /> Save QR to gallery
+                  <FiDownload className="w-4 h-4" /> Download QR
                 </button>
                 <p className="text-xs text-stone-300 text-center max-w-[18rem]">
                   <span className="sm:hidden">
@@ -423,6 +437,7 @@ export default function PaymentPage() {
                   Scan using the scanner <strong>inside</strong> your UPI app — the
                   phone camera may open WhatsApp instead.
                 </p>
+              </div>
               </div>
             </section>
 
