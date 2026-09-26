@@ -30,7 +30,13 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-ink border-b border-ink-line">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
-        <Link to="/" className="flex items-center justify-self-start" aria-label="igniteX home">
+        <Link
+          to="/"
+          // Already on the home page (possibly scrolled or at /#about): go back to the top
+          onClick={() => { setOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          className="flex items-center justify-self-start"
+          aria-label="igniteX home"
+        >
           <img src={logo} alt="igniteX" className="h-6 sm:h-7 object-contain" />
         </Link>
 
