@@ -24,6 +24,7 @@ interface AdminMember {
 
 interface AdminTeam {
   registration_id: string
+  created_at: string
   team_name: string
   payment_status: PaymentStatus
   payment_txn_id: string | null
@@ -198,7 +199,8 @@ function Dashboard({ email }: { email: string }) {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return teams.filter((t) => {
+    return teams
+      .filter((t) => {
       const statusOk =
         filter === 'all' ||
         (filter === 'review' ? t.payment_status === 'ticket_uploaded' : t.payment_status === filter)
@@ -211,7 +213,14 @@ function Dashboard({ email }: { email: string }) {
         t.members.some((m) => m.name.toLowerCase().includes(q) || m.phone.includes(q))
       )
     })
+      // Newest registration first; the first team to register sits at the bottom as #1
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
   }, [teams, filter, query])
+
+  const serialOf = useMemo(() => {
+    const byAge = [...teams].sort((a, b) => a.created_at.localeCompare(b.created_at))
+    return new Map(byAge.map((t, i) => [t.registration_id, i + 1]))
+  }, [teams])
 
   if (forbidden) {
     return (
@@ -311,7 +320,7 @@ function Dashboard({ email }: { email: string }) {
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((t) => (
-            <TeamCard key={t.registration_id} team={t} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} />
+            <TeamCard key={t.registration_id} team={t} serial={serialOf.get(t.registration_id) ?? 0} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} />
           ))}
         </ul>
       )}
@@ -319,8 +328,9 @@ function Dashboard({ email }: { email: string }) {
   )
 }
 
-function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
+function TeamCard({ team, serial, onSetStatus, onVerify, onDelete }: {
   team: AdminTeam
+  serial: number
   onSetStatus: (t: AdminTeam, s: PaymentStatus) => void
   onVerify: (t: AdminTeam) => Promise<void>
   onDelete: (t: AdminTeam) => Promise<void>
@@ -369,9 +379,17 @@ function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
     >
       {/* Title row */}
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-display font-bold text-lg leading-tight text-galaksi-100 truncate" title={team.team_name}>{team.team_name}</p>
-          <p className="mt-0.5 font-mono text-xs text-stone-400">{team.registration_id}</p>
+        <div className="min-w-0 flex items-start gap-3">
+          <span
+            title={`Registration #${serial}`}
+            className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-mono text-sm font-bold tabular-nums bg-galaksi-500/15 text-galaksi-300"
+          >
+            {serial}
+          </span>
+          <div className="min-w-0">
+            <p className="font-display font-bold text-lg leading-tight text-galaksi-100 truncate" title={team.team_name}>{team.team_name}</p>
+            <p className="mt-0.5 font-mono text-xs text-stone-400">{team.registration_id} · {formatWhen(team.created_at)}</p>
+          </div>
         </div>
         <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold ${status.cls}`}>{status.label}</span>
       </div>
