@@ -7,7 +7,8 @@ import {
   FiLogOut, FiSearch, FiRotateCcw, FiPhone, FiChevronDown,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
-import { AdminShell, AdminLoginForm, useAdminSession } from '../components/AdminAuth'
+import { FunctionsHttpError } from '@supabase/supabase-js'
+import { AdminShell, useAdminSession } from '../components/AdminAuth'
 
 interface CheckInMember {
   name: string
@@ -57,8 +58,64 @@ export default function CheckInPage() {
   }, [])
 
   if (checking) return <AdminShell><p className="text-stone-400 text-sm">Loading…</p></AdminShell>
-  if (!session) return <AdminShell><AdminLoginForm /></AdminShell>
+  if (!session) return <AdminShell><DeskLoginForm /></AdminShell>
   return <Desk email={session.user.email ?? ''} />
+}
+
+const LOGIN_ERRORS: Record<string, string> = {
+  INVALID_LOGIN: 'Wrong login ID or password.',
+  TOO_MANY_ATTEMPTS: 'Too many wrong attempts. Wait 15 minutes and try again.',
+}
+
+/** Shared volunteer login — checked server-side by the checkin-login Edge Function. */
+function DeskLoginForm() {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    const { data, error } = await supabase.functions.invoke('checkin-login', { body: { username, password } })
+    let body: { access_token?: string; refresh_token?: string; error?: string } | null = data
+    if (error instanceof FunctionsHttpError) body = await error.context.json().catch(() => null)
+
+    if (body?.access_token && body.refresh_token) {
+      const { error: sessionErr } = await supabase.auth.setSession({
+        access_token: body.access_token,
+        refresh_token: body.refresh_token,
+      })
+      if (sessionErr) toast.error('Could not sign in. Try again.')
+    } else {
+      toast.error(LOGIN_ERRORS[body?.error ?? ''] ?? 'Could not sign in. Check your connection.')
+    }
+    setBusy(false)
+  }
+
+  return (
+    <form onSubmit={submit} className="glass-card-dark p-6 space-y-4">
+      <div>
+        <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Registration desk</h1>
+        <p className="text-sm text-stone-400 mt-1">Event-day check-in for volunteers.</p>
+      </div>
+      <div>
+        <label htmlFor="desk-id" className="label-galaksi">Login ID</label>
+        <input id="desk-id" autoComplete="username" autoCapitalize="none" required
+          value={username} onChange={(e) => setUsername(e.target.value)} className="input-galaksi" />
+      </div>
+      <div>
+        <label htmlFor="desk-password" className="label-galaksi">Password</label>
+        <input id="desk-password" type="password" autoComplete="current-password" required
+          value={password} onChange={(e) => setPassword(e.target.value)} className="input-galaksi" />
+      </div>
+      <button type="submit" disabled={busy} className="btn-galaksi w-full min-h-[52px] disabled:opacity-50">
+        {busy ? 'Signing in…' : 'Sign in'}
+      </button>
+      <p className="text-xs text-stone-500 text-center">
+        Organisers already signed in on <Link to="/admin" className="underline">/admin</Link> are let in automatically.
+      </p>
+    </form>
+  )
 }
 
 function Desk({ email }: { email: string }) {
@@ -69,6 +126,8 @@ function Desk({ email }: { email: string }) {
   const [manualId, setManualId] = useState('')
   const [result, setResult] = useState<ScanResult | null>(null)
   const [live, setLive] = useState(false)
+  // Shared volunteer account (see checkin-login) — no access to payments
+  const isDesk = email.endsWith('@ignitex.invalid')
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.rpc('admin_checkin_list')
@@ -82,6 +141,12 @@ function Desk({ email }: { email: string }) {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  // Desk accounts get no realtime row events (RLS keeps team rows private), so also poll
+  useEffect(() => {
+    const id = window.setInterval(() => { if (!document.hidden) load() }, 10_000)
+    return () => window.clearInterval(id)
+  }, [load])
 
   // Several volunteers can scan at once — every desk stays in sync
   useEffect(() => {
@@ -144,7 +209,7 @@ function Desk({ email }: { email: string }) {
     return (
       <AdminShell>
         <div className="glass-card-dark p-6 space-y-4 text-center">
-          <p className="text-galaksi-100 font-semibold">{email} is not an organiser account.</p>
+          <p className="text-galaksi-100 font-semibold">{email} can't use the registration desk.</p>
           <button onClick={() => supabase.auth.signOut()} className="btn-outline-galaksi w-full">Sign out</button>
         </div>
       </AdminShell>
@@ -162,9 +227,11 @@ function Desk({ email }: { email: string }) {
           />
         </div>
         <div className="flex items-center gap-1">
-          <Link to="/admin" className="px-3 min-h-[44px] flex items-center text-sm text-stone-400 hover:text-galaksi-100">
-            Payments
-          </Link>
+          {!isDesk && (
+            <Link to="/admin" className="px-3 min-h-[44px] flex items-center text-sm text-stone-400 hover:text-galaksi-100">
+              Payments
+            </Link>
+          )}
           <IconButton label="Refresh" onClick={load}><FiRefreshCw className={loading ? 'animate-spin' : ''} /></IconButton>
           <IconButton label="Sign out" onClick={() => supabase.auth.signOut()}><FiLogOut /></IconButton>
         </div>

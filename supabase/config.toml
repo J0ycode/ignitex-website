@@ -11,3 +11,10 @@ entrypoint = "./functions/send-ticket/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/notify-admins/index.ts"
+
+# Shared desk login for /registration. Called before sign-in, so no JWT;
+# checks CHECKIN_USERNAME / CHECKIN_PASSWORD itself, with rate limiting.
+[functions.checkin-login]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/checkin-login/index.ts"
