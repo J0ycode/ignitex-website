@@ -184,6 +184,7 @@ export default function PaymentPage() {
           p_registration_id: registrationId,
           p_screenshot_path: path,
           p_utr: cleanUtr,
+          p_payee_upi: UPI_ID, // lets organisers see which account this payment went to
         }),
         RPC_TIMEOUT_MS,
       )

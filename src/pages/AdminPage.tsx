@@ -33,12 +33,21 @@ interface AdminTeam {
   ticket_sent_at: string | null
   registered_ip: string | null
   payment_ip: string | null
+  payment_payee_upi: string | null
+  payment_payee_inferred: boolean
   registered_user_agent: string | null
   same_device_count: number
   members: AdminMember[]
 }
 
 const SORT_KEY = 'ignitex:admin-sort'
+
+// Every UPI account that has received entry fees (the account changed during registration)
+const PAYEE_NAMES: Record<string, string> = {
+  '7994974679@ptaxis': 'Hima Jaihin S S',
+  'mohamedazzam3880@okaxis': 'Mohamed Azzam',
+  'azeemelsalim1234-2@okicici': 'Azeem El Salim',
+}
 
 const FILTERS: { key: 'review' | PaymentStatus | 'all'; label: string }[] = [
   { key: 'review',   label: 'To review' },
@@ -419,6 +428,20 @@ function TeamCard({ team, serial, onSetStatus, onVerify, onDelete }: {
         <dt className="text-stone-500">UTR</dt>
         <dd className="min-w-0 font-mono text-galaksi-100 truncate select-all">{team.payment_txn_id ?? <span className="text-stone-500 font-sans">Not submitted</span>}</dd>
 
+        <dt className="text-stone-500">Paid to</dt>
+        <dd className="min-w-0 text-stone-300">
+          {team.payment_payee_upi ? (
+            <span className="block truncate" title={team.payment_payee_upi}>
+              <span className="text-galaksi-100">{PAYEE_NAMES[team.payment_payee_upi] ?? team.payment_payee_upi}</span>
+              {team.payment_payee_inferred && (
+                <span className="ml-1.5 text-xs text-stone-500" title="Estimated from registration time — check this account first">
+                  (est.)
+                </span>
+              )}
+            </span>
+          ) : '—'}
+        </dd>
+
         <dt className="text-stone-500">Submitted</dt>
         <dd className="text-stone-300">{team.payment_submitted_at ? formatWhen(team.payment_submitted_at) : '—'}</dd>
 
@@ -600,10 +623,12 @@ function storagePath(value: string | null): string | null {
 
 function downloadCsv(teams: AdminTeam[]) {
   const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const header = ['Registration ID', 'Team', 'Status', 'UTR', 'Submitted', 'Member', 'Leader', 'Email', 'Phone', 'College', 'Registered IP', 'Payment IP', 'Device']
+  const header = ['Registration ID', 'Team', 'Status', 'UTR', 'Paid to', 'Submitted', 'Member', 'Leader', 'Email', 'Phone', 'College', 'Registered IP', 'Payment IP', 'Device']
   const rows = teams.flatMap((t) =>
     t.members.map((m) => [
-      t.registration_id, t.team_name, t.payment_status, t.payment_txn_id, t.payment_submitted_at,
+      t.registration_id, t.team_name, t.payment_status, t.payment_txn_id,
+      t.payment_payee_upi ? `${PAYEE_NAMES[t.payment_payee_upi] ?? t.payment_payee_upi}${t.payment_payee_inferred ? ' (est.)' : ''}` : '',
+      t.payment_submitted_at,
       m.name, m.is_leader ? 'yes' : '', m.email, m.phone, m.college,
       t.registered_ip, t.payment_ip, describeUserAgent(t.registered_user_agent),
     ]),
