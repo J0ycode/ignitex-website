@@ -20,7 +20,15 @@ export default function Footer() {
             ))}
           </span>
         </div>
-        <nav className="flex gap-5">
+        <nav className="flex flex-wrap gap-x-5 gap-y-2">
+          <a
+            href="/ignitex-guidelines.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-galaksi-100 hover:underline"
+          >
+            Guidelines (PDF)
+          </a>
           <Link to="/register" className="hover:text-galaksi-100">Register</Link>
           <Link to="/my-registration" className="hover:text-galaksi-100">My ticket</Link>
         </nav>
