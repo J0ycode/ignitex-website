@@ -4,7 +4,7 @@ import QrScanner from 'qr-scanner'
 import toast from 'react-hot-toast'
 import {
   FiCamera, FiCameraOff, FiCheckCircle, FiAlertTriangle, FiXCircle, FiRefreshCw,
-  FiLogOut, FiSearch, FiRotateCcw, FiPhone, FiChevronDown,
+  FiLogOut, FiSearch, FiRotateCcw, FiPhone, FiChevronDown, FiImage,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { FunctionsHttpError } from '@supabase/supabase-js'
@@ -68,6 +68,51 @@ const LOGIN_ERRORS: Record<string, string> = {
 }
 
 /** Shared volunteer login — checked server-side by the checkin-login Edge Function. */
+// ── Sign out after 1 hour without activity (shared volunteer phones) ──────────
+const IDLE_LIMIT_MS = 60 * 60 * 1000
+const ACTIVE_KEY = 'ignitex:desk-last-active'
+
+function markActive() {
+  try { localStorage.setItem(ACTIVE_KEY, String(Date.now())) } catch { /* private mode */ }
+}
+
+function lastActive(): number | null {
+  try {
+    const v = Number(localStorage.getItem(ACTIVE_KEY))
+    return Number.isFinite(v) && v > 0 ? v : null
+  } catch { return null }
+}
+
+/** Signs out once the page has been idle for an hour — also after the phone slept or the tab was closed. */
+function useIdleSignOut() {
+  useEffect(() => {
+    let lastWrite = 0
+    const onActivity = () => {
+      const now = Date.now()
+      if (now - lastWrite > 15_000) { lastWrite = now; markActive() } // throttle storage writes
+    }
+    const check = () => {
+      const last = lastActive()
+      if (last === null) return markActive()
+      if (Date.now() - last > IDLE_LIMIT_MS) {
+        try { localStorage.removeItem(ACTIVE_KEY) } catch { /* ignore */ }
+        supabase.auth.signOut()
+        toast('Signed out after 1 hour of inactivity. Please log in again.', { id: 'idle-signout', duration: 8000 })
+      }
+    }
+    check()
+    const events = ['pointerdown', 'keydown', 'touchstart', 'scroll'] as const
+    events.forEach((ev) => window.addEventListener(ev, onActivity, { passive: true }))
+    document.addEventListener('visibilitychange', check)
+    const timer = window.setInterval(check, 30_000)
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, onActivity))
+      document.removeEventListener('visibilitychange', check)
+      window.clearInterval(timer)
+    }
+  }, [])
+}
+
 function DeskLoginForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -86,6 +131,7 @@ function DeskLoginForm() {
         refresh_token: body.refresh_token,
       })
       if (sessionErr) toast.error('Could not sign in. Try again.')
+      else markActive()
     } else {
       toast.error(LOGIN_ERRORS[body?.error ?? ''] ?? 'Could not sign in. Check your connection.')
     }
@@ -119,6 +165,7 @@ function DeskLoginForm() {
 }
 
 function Desk({ email }: { email: string }) {
+  useIdleSignOut()
   const [teams, setTeams] = useState<CheckInTeam[]>([])
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
@@ -158,6 +205,7 @@ function Desk({ email }: { email: string }) {
   }, [load])
 
   const checkIn = useCallback(async (registrationId: string) => {
+    markActive()
     const { data, error } = await supabase.rpc('admin_check_in', { p_registration_id: registrationId })
     if (error) {
       const code = Object.keys(ERRORS).find((k) => error.message.includes(k))
@@ -317,73 +365,130 @@ function Scanner({ onScan }: { onScan: (registrationId: string) => void }) {
   const scannerRef = useRef<QrScanner | null>(null)
   const lastRef = useRef<{ id: string; at: number }>({ id: '', at: 0 })
   const onScanRef = useRef(onScan)
-  const [running, setRunning] = useState(false)
+  const [state, setState] = useState<'idle' | 'starting' | 'running'>('idle')
   const [camError, setCamError] = useState('')
 
   useEffect(() => { onScanRef.current = onScan }, [onScan])
 
   useEffect(() => () => { scannerRef.current?.destroy() }, [])
 
+  const handleCode = (text: string) => {
+    const id = registrationIdFrom(text)
+    if (!id) {
+      toast.error('Not an igniteX ticket QR', { id: 'bad-qr' })
+      return
+    }
+    // The camera sees the same code many times a second — handle it once
+    const now = Date.now()
+    if (lastRef.current.id === id && now - lastRef.current.at < 4000) return
+    lastRef.current = { id, at: now }
+    onScanRef.current(id)
+  }
+
   const start = async () => {
     setCamError('')
-    if (!videoRef.current) return
-    if (!scannerRef.current) {
-      scannerRef.current = new QrScanner(
-        videoRef.current,
-        (res) => {
-          const id = registrationIdFrom(res.data)
-          if (!id) {
-            toast.error('Not an igniteX ticket QR', { id: 'bad-qr' })
-            return
-          }
-          // The camera sees the same code many times a second — handle it once
-          const now = Date.now()
-          if (lastRef.current.id === id && now - lastRef.current.at < 4000) return
-          lastRef.current = { id, at: now }
-          onScanRef.current(id)
-        },
-        { preferredCamera: 'environment', highlightScanRegion: true, highlightCodeOutline: true, returnDetailedScanResult: true },
-      )
+    // Browsers only expose the camera on https:// (or localhost)
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setCamError(`Live camera needs the secure site: ${LIVE_URL}. Or use "Scan from photo" below.`)
+      return
     }
+    if (!videoRef.current) return
+    // Show the video before starting — some phones (iOS Safari) won't play a hidden video
+    setState('starting')
     try {
+      if (!scannerRef.current) {
+        scannerRef.current = new QrScanner(videoRef.current, (res) => handleCode(res.data), {
+          preferredCamera: 'environment',
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+          returnDetailedScanResult: true,
+        })
+      }
       await scannerRef.current.start()
-      setRunning(true)
-    } catch {
-      setCamError(
-        window.isSecureContext
-          ? 'Camera blocked. Allow camera access for this site in your browser settings.'
-          : 'Camera needs HTTPS — open this page on the live site.',
-      )
+      setState('running')
+    } catch (e) {
+      console.error('Camera start failed', e)
+      scannerRef.current?.destroy()
+      scannerRef.current = null
+      setState('idle')
+      setCamError(cameraErrorMessage(e))
     }
   }
 
   const stop = () => {
     scannerRef.current?.stop()
-    setRunning(false)
+    setState('idle')
   }
+
+  /** Fallback: take/choose a photo of the ticket and decode it — works on any phone. */
+  const scanPhoto = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const res = await QrScanner.scanImage(file, { returnDetailedScanResult: true })
+      lastRef.current = { id: '', at: 0 } // a deliberate photo always counts
+      handleCode(res.data)
+    } catch {
+      toast.error('No QR code found in that photo. Try again closer to the code.')
+    }
+  }
+
+  const showVideo = state !== 'idle'
 
   return (
     <div className="rounded-2xl overflow-hidden border border-ink-line bg-black">
       <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-square">
-        <video ref={videoRef} className={`w-full h-full object-cover ${running ? '' : 'invisible'}`} muted playsInline />
-        {!running && (
+        {/* Own wrapper: qr-scanner adds its overlay next to the video, outside React's children */}
+        <div className={`absolute inset-0 ${showVideo ? '' : 'invisible'}`}>
+          <video ref={videoRef} className="w-full h-full object-cover" muted playsInline autoPlay />
+        </div>
+        {state === 'starting' && (
+          <p className="absolute inset-x-0 bottom-3 text-center text-xs text-stone-300">Starting camera…</p>
+        )}
+        {!showVideo && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
             <FiCamera className="w-10 h-10 text-galaksi-300" />
             <p className="text-sm text-stone-300">Scan the QR on a team's ticket to mark them present.</p>
-            {camError && <p className="text-xs text-red-300">{camError}</p>}
+            {camError && <p className="text-xs text-red-300 break-words">{camError}</p>}
           </div>
         )}
       </div>
       <button
-        onClick={running ? stop : start}
+        onClick={state === 'idle' ? start : stop}
         className={`w-full flex items-center justify-center gap-2 min-h-[52px] text-sm font-semibold ${
-          running ? 'bg-white/5 text-stone-200' : 'bg-galaksi-500 text-ink'
+          state === 'idle' ? 'bg-galaksi-500 text-ink' : 'bg-white/5 text-stone-200'
         }`}
       >
-        {running ? <><FiCameraOff /> Stop camera</> : <><FiCamera /> Start scanning</>}
+        {state === 'idle' ? <><FiCamera /> Start scanning</> : <><FiCameraOff /> Stop camera</>}
       </button>
+      <label className="w-full flex items-center justify-center gap-2 min-h-[48px] text-sm text-stone-300 border-t border-ink-line cursor-pointer active:bg-white/5">
+        <FiImage /> Scan from photo
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          onChange={(e) => { scanPhoto(e.target.files?.[0]); e.target.value = '' }}
+        />
+      </label>
     </div>
   )
+}
+
+const LIVE_URL = 'https://ignitex-2026.vercel.app/registration'
+
+function cameraErrorMessage(e: unknown): string {
+  const name = e instanceof DOMException ? e.name : ''
+  const text = e instanceof Error ? e.message : String(e)
+  if (name === 'NotAllowedError' || /permission|denied/i.test(text)) {
+    return 'Camera permission is blocked. Tap the lock/settings icon next to the address bar → Permissions → Camera → Allow, then reload.'
+  }
+  if (name === 'NotFoundError' || name === 'OverconstrainedError' || /not found|no camera/i.test(text)) {
+    return 'No camera found on this device. Use "Scan from photo" or type the ID.'
+  }
+  if (name === 'NotReadableError' || /in use|could not start/i.test(text)) {
+    return 'The camera is being used by another app. Close it and try again.'
+  }
+  return `Camera could not start (${name || text || 'unknown error'}). Use "Scan from photo" below.`
 }
 
 function ResultBanner({ result, onClose }: { result: ScanResult | null; onClose: () => void }) {
