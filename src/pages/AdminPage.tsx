@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   FiCheck, FiX, FiEye, FiDownload, FiRefreshCw, FiLogOut, FiChevronDown, FiSearch,
-  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2,
+  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2, FiUserCheck,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { AdminShell as Shell, AdminLoginForm as LoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
@@ -225,79 +225,91 @@ function Dashboard({ email }: { email: string }) {
   }
 
   return (
-    <div className="min-h-screen px-4 sm:px-8 lg:px-12 pt-20 pb-16 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2">
-          <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Payments</h1>
-          <span
-            title={live ? 'Live — updates appear instantly' : 'Connecting…'}
-            className={`w-2 h-2 rounded-full ${live ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}
-          />
+    <div className="min-h-screen px-4 sm:px-8 lg:px-12 pt-20 sm:pt-24 pb-16 max-w-7xl mx-auto">
+      {/* Header */}
+      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pb-5 mb-6 border-b border-ink-line">
+        <div className="min-w-0">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">Payments</h1>
+          <p className="mt-1 flex items-center gap-2 text-xs sm:text-sm text-stone-400">
+            <span className={`w-2 h-2 rounded-full shrink-0 ${live ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
+            <span className="truncate">{live ? 'Live' : 'Connecting…'} · {email}</span>
+          </p>
         </div>
-        <div className="flex items-center gap-1">
-          <Link to="/registration" className="px-3 min-h-[44px] flex items-center text-sm text-stone-400 hover:text-galaksi-100">
-            Check-in
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Link to="/registration" title="Check-in desk" className={TOOLBAR_BTN}>
+            <FiUserCheck /> <span className="hidden sm:inline">Check-in</span>
           </Link>
-          <IconButton label={alerts === 'granted' ? 'Alerts on (tap to re-register device)' : 'Enable alerts on this device'} onClick={turnOnAlerts}>
+          <ToolbarButton
+            label={alerts === 'granted' ? 'Alerts on' : 'Alerts'}
+            title={alerts === 'granted' ? 'Alerts on (tap to re-register device)' : 'Enable alerts on this device'}
+            onClick={turnOnAlerts}
+          >
             <FiBell className={alerts === 'granted' ? 'text-green-300' : ''} />
-          </IconButton>
-          <IconButton label="Refresh" onClick={load}><FiRefreshCw className={loading ? 'animate-spin' : ''} /></IconButton>
-          <IconButton label="Export CSV" onClick={() => downloadCsv(teams)}><FiDownload /></IconButton>
-          <IconButton label="Sign out" onClick={() => supabase.auth.signOut()}><FiLogOut /></IconButton>
+          </ToolbarButton>
+          <ToolbarButton label="Refresh" onClick={load}><FiRefreshCw className={loading ? 'animate-spin' : ''} /></ToolbarButton>
+          <ToolbarButton label="Export" title="Export CSV" onClick={() => downloadCsv(teams)}><FiDownload /></ToolbarButton>
+          <ToolbarButton label="Sign out" onClick={() => supabase.auth.signOut()}><FiLogOut /></ToolbarButton>
         </div>
-      </div>
+      </header>
 
       {alerts !== 'granted' && alerts !== 'unsupported' && (
         <button
           onClick={turnOnAlerts}
-          className="w-full mb-4 flex items-center justify-center gap-2 min-h-[48px] rounded-xl bg-galaksi-500/20 text-sm font-semibold text-galaksi-100"
+          className="w-full mb-6 flex items-center justify-center gap-2 min-h-[48px] rounded-xl bg-galaksi-500/15 border border-galaksi-500/30 text-sm font-semibold text-galaksi-100"
         >
           <FiBell /> Enable payment alerts on this device
         </button>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <Stat label="Teams" value={`${teams.length}/${MAX_TEAMS}`} />
-        <Stat label="To review" value={String(counts.ticket_uploaded)} />
-        <Stat label="Collected" value={`₹${counts.verified * ENTRY_FEE}`} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <Stat label="Teams" value={`${teams.length}`} hint={`of ${MAX_TEAMS} slots`} />
+        <Stat label="To review" value={String(counts.ticket_uploaded)} hint="payment proofs" tone={counts.ticket_uploaded > 0 ? 'text-amber-300' : undefined} />
+        <Stat label="Verified" value={String(counts.verified)} hint="tickets issued" tone="text-green-300" />
+        <Stat label="Collected" value={`₹${counts.verified * ENTRY_FEE}`} hint={`₹${ENTRY_FEE} per team`} />
       </div>
 
-      {/* Search */}
-      <div className="relative mb-3">
-        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search team, ID, UTR, name, phone"
-          aria-label="Search teams"
-          className="input-galaksi pl-11 py-3"
-        />
-      </div>
-
-      {/* Filter chips — horizontally scrollable on small screens */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-4 px-4">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`shrink-0 px-4 min-h-[40px] rounded-full text-sm font-semibold transition-colors ${
-              filter === f.key ? 'bg-galaksi-100 text-galaksi-900' : 'bg-white/5 text-stone-300'
-            }`}
-          >
-            {f.label}
-            {f.key === 'review' && counts.ticket_uploaded > 0 && ` (${counts.ticket_uploaded})`}
-          </button>
-        ))}
+      {/* Toolbar: filters + search */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-5">
+        <div className="flex gap-1 p-1 rounded-xl bg-white/5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-1 sm:self-start">
+          {FILTERS.map((f) => {
+            const n = f.key === 'all' ? teams.length : f.key === 'review' ? counts.ticket_uploaded : counts[f.key]
+            return (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                aria-pressed={filter === f.key}
+                className={`shrink-0 flex items-center gap-2 px-3.5 min-h-[40px] rounded-lg text-sm font-semibold transition-colors ${
+                  filter === f.key ? 'bg-galaksi-100 text-galaksi-900' : 'text-stone-300 hover:text-galaksi-100'
+                }`}
+              >
+                {f.label}
+                <span className={`text-xs tabular-nums ${filter === f.key ? 'text-galaksi-900/70' : 'text-stone-500'}`}>{n}</span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="relative lg:w-80">
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search team, ID, UTR, name, phone"
+            aria-label="Search teams"
+            className="input-galaksi pl-11 py-3"
+          />
+        </div>
       </div>
 
       {loading && teams.length === 0 ? (
-        <p className="text-stone-400 text-sm">Loading…</p>
+        <p className="text-stone-400 text-sm py-12 text-center">Loading…</p>
       ) : visible.length === 0 ? (
-        <p className="text-stone-400 text-sm py-8 text-center">Nothing here.</p>
+        <p className="py-12 text-center text-sm text-stone-400 rounded-2xl border border-dashed border-ink-line">
+          {query ? 'No teams match your search.' : 'No teams in this list.'}
+        </p>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 items-start">
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((t) => (
             <TeamCard key={t.registration_id} team={t} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} />
           ))}
@@ -351,62 +363,66 @@ function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
   }
 
   return (
-    <li className="rounded-2xl p-4" style={{ background: 'rgba(21,20,18,0.85)', border: '1px solid rgba(255,255,255,0.075)' }}>
+    <li
+      className="flex flex-col rounded-2xl p-4 sm:p-5"
+      style={{ background: 'rgba(21,20,18,0.85)', border: '1px solid rgba(255,255,255,0.075)' }}
+    >
+      {/* Title row */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="font-display font-bold text-galaksi-100 truncate">{team.team_name}</p>
-          <p className="font-mono text-xs text-stone-400">{team.registration_id}</p>
+          <p className="font-display font-bold text-lg leading-tight text-galaksi-100 truncate" title={team.team_name}>{team.team_name}</p>
+          <p className="mt-0.5 font-mono text-xs text-stone-400">{team.registration_id}</p>
         </div>
-        <div className="shrink-0 flex flex-col items-end gap-1">
-          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${status.cls}`}>{status.label}</span>
-          {team.ticket_sent_at && <span className="text-[11px] text-stone-400">Ticket sent</span>}
-        </div>
+        <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold ${status.cls}`}>{status.label}</span>
       </div>
 
-      {team.payment_txn_id && (
-        <p className="mt-2 text-sm text-stone-300">
-          UTR <span className="font-mono text-galaksi-100 select-all">{team.payment_txn_id}</span>
-        </p>
-      )}
-      {leader && (
-        <p className="mt-1 text-sm text-stone-300">
-          {leader.name} · <a href={`tel:${leader.phone}`} className="text-galaksi-300 underline">{leader.phone}</a>
-        </p>
-      )}
-      <p className="mt-1 flex items-center gap-1.5 text-xs text-stone-400">
-        <FiMonitor className="shrink-0" />
-        <span className="truncate">
-          {describeUserAgent(team.registered_user_agent)}
-          {team.registered_ip && <> · IP <span className="font-mono">{team.registered_ip}</span></>}
-          {team.payment_ip && team.payment_ip !== team.registered_ip && <> · paid from <span className="font-mono">{team.payment_ip}</span></>}
-        </span>
-      </p>
+      {/* Details: fixed label column so every card lines up */}
+      <dl className="mt-4 grid grid-cols-[5.5rem_1fr] gap-x-3 gap-y-2 text-sm">
+        <dt className="text-stone-500">UTR</dt>
+        <dd className="min-w-0 font-mono text-galaksi-100 truncate select-all">{team.payment_txn_id ?? <span className="text-stone-500 font-sans">Not submitted</span>}</dd>
+
+        <dt className="text-stone-500">Submitted</dt>
+        <dd className="text-stone-300">{team.payment_submitted_at ? formatWhen(team.payment_submitted_at) : '—'}</dd>
+
+        <dt className="text-stone-500">Leader</dt>
+        <dd className="min-w-0 text-stone-300 truncate">
+          {leader ? <>{leader.name} · <a href={`tel:${leader.phone}`} className="text-galaksi-300 hover:underline">{leader.phone}</a></> : '—'}
+        </dd>
+
+        <dt className="text-stone-500">Ticket</dt>
+        <dd className="text-stone-300">{team.ticket_sent_at ? `Emailed ${formatWhen(team.ticket_sent_at)}` : '—'}</dd>
+
+        <dt className="text-stone-500">Device</dt>
+        <dd className="min-w-0 flex items-center gap-1.5 text-xs text-stone-400">
+          <FiMonitor className="shrink-0" />
+          <span className="truncate" title={[team.registered_ip, team.payment_ip].filter(Boolean).join(' / ')}>
+            {describeUserAgent(team.registered_user_agent)}
+            {team.registered_ip && <> · <span className="font-mono">{team.registered_ip}</span></>}
+          </span>
+        </dd>
+      </dl>
+
       {team.same_device_count > 1 && (
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-amber-300">
+        <p className="mt-3 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500/10 text-xs text-amber-300">
           <FiAlertTriangle className="shrink-0" /> Same device registered {team.same_device_count} teams — double-check
         </p>
       )}
 
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="mt-2 flex items-center gap-1 text-xs text-stone-400 min-h-[36px]"
-        aria-expanded={open}
-      >
-        {team.members.length} members <FiChevronDown className={`transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
       {open && (
-        <ul className="mt-1 space-y-2 text-xs text-stone-300">
+        <ul className="mt-3 space-y-2 text-xs text-stone-300">
           {team.members.map((m) => (
-            <li key={m.email} className="p-2 rounded-lg bg-white/5">
+            <li key={m.email} className="p-2.5 rounded-lg bg-white/5">
               <p className="text-galaksi-100 font-semibold">{m.name}{m.is_leader && ' (leader)'}</p>
               <p className="break-all">{m.email} · {m.phone}</p>
-              <p>{m.college}</p>
+              <p className="text-stone-400">{m.college}</p>
             </li>
           ))}
         </ul>
       )}
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      {/* Actions pinned to the bottom so buttons align across a row of cards */}
+      <div className="mt-auto pt-4">
+      <div className="grid grid-cols-3 gap-2">
         <button
           onClick={viewProof}
           disabled={!team.payment_screenshot_url}
@@ -454,41 +470,67 @@ function TeamCard({ team, onSetStatus, onVerify, onDelete }: {
         </div>
       )}
 
-      <button
-        onClick={async () => {
-          const warn = team.payment_status === 'verified'
-            ? `${team.team_name} is VERIFIED and has a ticket.
+      <div className="mt-3 pt-3 flex items-center justify-between border-t border-ink-line">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-1 min-h-[36px] text-xs text-stone-400 hover:text-galaksi-100"
+          aria-expanded={open}
+        >
+          {team.members.length} members <FiChevronDown className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+        <button
+          onClick={async () => {
+            const warn = team.payment_status === 'verified'
+              ? `${team.team_name} is VERIFIED and has a ticket.
 
 Delete anyway? Their ticket will stop working. This cannot be undone.`
-            : `Delete ${team.team_name}? This frees its slot and cannot be undone.`
-          if (!window.confirm(warn)) return
-          setBusy(true)
-          await onDelete(team)
-          setBusy(false)
-        }}
-        disabled={busy}
-        className="mt-3 flex items-center gap-1.5 min-h-[36px] text-xs text-stone-500 hover:text-red-300 disabled:opacity-30"
-      >
-        <FiTrash2 /> Delete team
-      </button>
+              : `Delete ${team.team_name}? This frees its slot and cannot be undone.`
+            if (!window.confirm(warn)) return
+            setBusy(true)
+            await onDelete(team)
+            setBusy(false)
+          }}
+          disabled={busy}
+          className="flex items-center gap-1.5 min-h-[36px] text-xs text-stone-500 hover:text-red-300 disabled:opacity-30"
+        >
+          <FiTrash2 /> Delete
+        </button>
+      </div>
+      </div>
     </li>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+const formatWhen = (iso: string) =>
+  new Date(iso).toLocaleString('en-IN', {
+    day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata',
+  })
+
+function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: string }) {
   return (
-    <div className="rounded-xl p-3 text-center bg-white/5">
-      <p className="font-display font-bold text-lg text-galaksi-100">{value}</p>
-      <p className="text-[11px] text-stone-400 uppercase tracking-wider">{label}</p>
+    <div className="rounded-2xl p-4 bg-white/[0.04] border border-white/[0.06]">
+      <p className="text-[11px] font-mono uppercase tracking-widest text-stone-400">{label}</p>
+      <p className={`mt-1 font-display font-extrabold text-2xl sm:text-3xl tabular-nums ${tone ?? 'text-galaksi-100'}`}>{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-stone-500">{hint}</p>}
     </div>
   )
 }
 
-function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+const TOOLBAR_BTN =
+  'flex items-center justify-center gap-2 h-10 min-w-[40px] px-2.5 sm:px-3 rounded-lg text-sm text-stone-300 ' +
+  'hover:bg-white/10 hover:text-galaksi-100 active:bg-white/10 transition-colors'
+
+/** Icon-only on phones, icon + label from sm up. */
+function ToolbarButton({ label, title, onClick, children }: {
+  label: string
+  title?: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
   return (
-    <button onClick={onClick} aria-label={label} title={label}
-      className="w-11 h-11 flex items-center justify-center rounded-full text-stone-300 hover:bg-white/10 active:bg-white/10">
+    <button onClick={onClick} aria-label={title ?? label} title={title ?? label} className={TOOLBAR_BTN}>
       {children}
+      <span className="hidden sm:inline">{label}</span>
     </button>
   )
 }
