@@ -316,9 +316,12 @@ export default function PaymentPage() {
             <section className="space-y-3">
               <StepLabel n={1}>Pay ₹{ENTRY_FEE}</StepLabel>
 
-              {/* Mobile: the phone can't scan its own screen, and a plain upi:// link
+              {/* The phone can't scan its own screen, and a plain upi:// link
                   opens the *default* UPI app (often WhatsApp) — so target each app. */}
-              <div className="sm:hidden space-y-2">
+              <div className="space-y-2">
+                <p className="hidden sm:block text-xs text-stone-400">
+                  These buttons open the app on a phone. On a computer, use the UPI ID or scan the QR below.
+                </p>
                 {upiAppLinks(registrationId).map((app, i) => (
                   <a
                     key={app.name}
@@ -342,7 +345,7 @@ export default function PaymentPage() {
                 className="p-3 rounded-xl space-y-3"
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.075)' }}
               >
-                <p className="text-xs text-stone-300 sm:hidden">Button not working? Pay manually to this UPI ID:</p>
+                <p className="text-xs text-stone-300">Button not working? Pay manually to this UPI ID:</p>
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[11px] font-mono uppercase tracking-widest text-stone-400">UPI ID</p>
