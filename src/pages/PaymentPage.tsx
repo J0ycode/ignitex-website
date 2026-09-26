@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiZap, FiAlertCircle, FiAlertTriangle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw } from 'react-icons/fi'
+import { FiZap, FiAlertCircle, FiAlertTriangle, FiCopy, FiSmartphone, FiUploadCloud, FiX, FiGrid, FiCheck, FiClock, FiMail, FiRefreshCw, FiDownload } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 import { UPI_ID, UPI_PAYEE_NAME, ENTRY_FEE, upiPayUrl, upiAppLinks, friendlyRpcError } from '../lib/payment'
 import { compressImage, withTimeout, uuid, TimeoutError } from '../lib/upload'
 import { useCountdown } from '../hooks/useCountdown'
@@ -37,7 +37,7 @@ export default function PaymentPage() {
   const [checking, setChecking] = useState(false)
   const [holdExpiresAt, setHoldExpiresAt] = useState<Date | null>(null)
   const hold = useCountdown(holdExpiresAt)
-  const [showQr, setShowQr]       = useState(false)
+  const qrRef = useRef<HTMLCanvasElement>(null)
   const [wasRejected, setWasRejected] = useState(false)
 
   const loadTeam = useCallback(async () => {
@@ -112,6 +112,26 @@ export default function PaymentPage() {
     } catch {
       toast(`UPI ID: ${UPI_ID}`)
     }
+  }
+
+  /** Saves the QR (with a white border so scanners read it) for "upload from gallery". */
+  const saveQr = () => {
+    const qr = qrRef.current
+    if (!qr) return
+    const pad = 24
+    const out = document.createElement('canvas')
+    out.width = qr.width + pad * 2
+    out.height = qr.height + pad * 2
+    const ctx = out.getContext('2d')
+    if (!ctx) return
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, out.width, out.height)
+    ctx.drawImage(qr, pad, pad)
+    const a = document.createElement('a')
+    a.href = out.toDataURL('image/png')
+    a.download = `igniteX-payment-${registrationId}.png`
+    a.click()
+    toast.success('QR saved — open your UPI app → Scan → gallery')
   }
 
   const onPickFile = (f: File | null) => {
@@ -372,19 +392,14 @@ export default function PaymentPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowQr((s) => !s)}
-                className="sm:hidden w-full flex items-center justify-center gap-2 min-h-[44px] text-sm text-stone-300"
-              >
-                <FiGrid className="w-4 h-4" />
-                {showQr ? 'Hide QR code' : 'Paying from another phone? Show QR'}
-              </button>
-
-              <div className={`${showQr ? 'flex' : 'hidden'} sm:flex flex-col items-center gap-2`}>
+              <div className="flex flex-col items-center gap-2 pt-1">
+                <p className="flex items-center gap-2 text-sm font-semibold text-galaksi-100">
+                  <FiGrid className="w-4 h-4" /> Or pay by QR code
+                </p>
                 {/* Generated from the UPI intent, so amount + reg. ID note are pre-filled */}
                 <div className="p-3 bg-white rounded-xl">
-                  <QRCodeSVG
+                  <QRCodeCanvas
+                    ref={qrRef}
                     value={upiPayUrl(registrationId)}
                     size={196}
                     level="M"
@@ -392,8 +407,20 @@ export default function PaymentPage() {
                     aria-label={`UPI QR code to pay ₹${ENTRY_FEE} to ${UPI_ID}`}
                   />
                 </div>
-                <p className="text-xs text-stone-300 text-center max-w-[16rem]">
-                  Scan using the scanner <strong>inside</strong> GPay / PhonePe / Paytm — the
+                <p className="text-xs text-stone-400">{UPI_PAYEE_NAME} · ₹{ENTRY_FEE}</p>
+                <button
+                  type="button"
+                  onClick={saveQr}
+                  className="sm:hidden flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-semibold text-galaksi-200 border border-galaksi-400/40 active:bg-white/10"
+                >
+                  <FiDownload className="w-4 h-4" /> Save QR to gallery
+                </button>
+                <p className="text-xs text-stone-300 text-center max-w-[18rem]">
+                  <span className="sm:hidden">
+                    On this phone: save the QR, then in GPay / PhonePe / Paytm tap
+                    <strong> Scan QR → upload from gallery</strong>.{' '}
+                  </span>
+                  Scan using the scanner <strong>inside</strong> your UPI app — the
                   phone camera may open WhatsApp instead.
                 </p>
               </div>
