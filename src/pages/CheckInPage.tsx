@@ -8,7 +8,7 @@ import {
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { FunctionsHttpError } from '@supabase/supabase-js'
-import { AdminShell, useAdminSession } from '../components/AdminAuth'
+import { AdminShell, markActive, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 
 interface CheckInMember {
   name: string
@@ -68,51 +68,6 @@ const LOGIN_ERRORS: Record<string, string> = {
 }
 
 /** Shared volunteer login — checked server-side by the checkin-login Edge Function. */
-// ── Sign out after 1 hour without activity (shared volunteer phones) ──────────
-const IDLE_LIMIT_MS = 60 * 60 * 1000
-const ACTIVE_KEY = 'ignitex:desk-last-active'
-
-function markActive() {
-  try { localStorage.setItem(ACTIVE_KEY, String(Date.now())) } catch { /* private mode */ }
-}
-
-function lastActive(): number | null {
-  try {
-    const v = Number(localStorage.getItem(ACTIVE_KEY))
-    return Number.isFinite(v) && v > 0 ? v : null
-  } catch { return null }
-}
-
-/** Signs out once the page has been idle for an hour — also after the phone slept or the tab was closed. */
-function useIdleSignOut() {
-  useEffect(() => {
-    let lastWrite = 0
-    const onActivity = () => {
-      const now = Date.now()
-      if (now - lastWrite > 15_000) { lastWrite = now; markActive() } // throttle storage writes
-    }
-    const check = () => {
-      const last = lastActive()
-      if (last === null) return markActive()
-      if (Date.now() - last > IDLE_LIMIT_MS) {
-        try { localStorage.removeItem(ACTIVE_KEY) } catch { /* ignore */ }
-        supabase.auth.signOut()
-        toast('Signed out after 1 hour of inactivity. Please log in again.', { id: 'idle-signout', duration: 8000 })
-      }
-    }
-    check()
-    const events = ['pointerdown', 'keydown', 'touchstart', 'scroll'] as const
-    events.forEach((ev) => window.addEventListener(ev, onActivity, { passive: true }))
-    document.addEventListener('visibilitychange', check)
-    const timer = window.setInterval(check, 30_000)
-    return () => {
-      events.forEach((ev) => window.removeEventListener(ev, onActivity))
-      document.removeEventListener('visibilitychange', check)
-      window.clearInterval(timer)
-    }
-  }, [])
-}
-
 function DeskLoginForm() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')

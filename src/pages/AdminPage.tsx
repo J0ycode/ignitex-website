@@ -7,7 +7,7 @@ import {
   FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
-import { AdminShell as Shell, AdminLoginForm as LoginForm, useAdminSession } from '../components/AdminAuth'
+import { AdminShell as Shell, AdminLoginForm as LoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import { MAX_TEAMS } from '../lib/registrationStatus'
 import { ENTRY_FEE } from '../lib/payment'
 import { alertsPermission, chime, describeUserAgent, enableAdminAlerts, localNotify } from '../lib/adminAlerts'
@@ -75,6 +75,7 @@ export default function AdminPage() {
 }
 
 function Dashboard({ email }: { email: string }) {
+  useIdleSignOut()
   const [teams, setTeams] = useState<AdminTeam[]>([])
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
