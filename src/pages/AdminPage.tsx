@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FunctionsHttpError, type Session } from '@supabase/supabase-js'
+import { FunctionsHttpError } from '@supabase/supabase-js'
+import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   FiCheck, FiX, FiEye, FiDownload, FiRefreshCw, FiLogOut, FiChevronDown, FiSearch,
   FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
+import { AdminShell as Shell, AdminLoginForm as LoginForm, useAdminSession } from '../components/AdminAuth'
 import { MAX_TEAMS } from '../lib/registrationStatus'
 import { ENTRY_FEE } from '../lib/payment'
 import { alertsPermission, chime, describeUserAgent, enableAdminAlerts, localNotify } from '../lib/adminAlerts'
@@ -51,8 +53,7 @@ const STATUS_STYLE: Record<PaymentStatus, { label: string; cls: string }> = {
 }
 
 export default function AdminPage() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [checking, setChecking] = useState(true)
+  const { session, checking } = useAdminSession()
 
   // "Add to Home Screen" from here installs an app that opens /admin
   // (needed for push alerts on iPhone, which only work in Home Screen apps)
@@ -68,59 +69,9 @@ export default function AdminPage() {
     }
   }, [])
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setChecking(false)
-    })
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => sub.subscription.unsubscribe()
-  }, [])
-
   if (checking) return <Shell><p className="text-stone-400 text-sm">Loading…</p></Shell>
   if (!session) return <Shell><LoginForm /></Shell>
   return <Dashboard email={session.user.email ?? ''} />
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-10">
-      <div className="w-full max-w-sm">{children}</div>
-    </div>
-  )
-}
-
-function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setBusy(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setBusy(false)
-    if (error) toast.error(error.message)
-  }
-
-  return (
-    <form onSubmit={submit} className="glass-card-dark p-6 space-y-4">
-      <h1 className="font-display font-extrabold text-2xl text-galaksi-100">Organiser login</h1>
-      <div>
-        <label htmlFor="admin-email" className="label-galaksi">Email</label>
-        <input id="admin-email" type="email" autoComplete="username" required
-          value={email} onChange={(e) => setEmail(e.target.value)} className="input-galaksi" />
-      </div>
-      <div>
-        <label htmlFor="admin-password" className="label-galaksi">Password</label>
-        <input id="admin-password" type="password" autoComplete="current-password" required
-          value={password} onChange={(e) => setPassword(e.target.value)} className="input-galaksi" />
-      </div>
-      <button type="submit" disabled={busy} className="btn-galaksi w-full min-h-[52px] disabled:opacity-50">
-        {busy ? 'Signing in…' : 'Sign in'}
-      </button>
-    </form>
-  )
 }
 
 function Dashboard({ email }: { email: string }) {
@@ -282,7 +233,10 @@ function Dashboard({ email }: { email: string }) {
             className={`w-2 h-2 rounded-full ${live ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}
           />
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          <Link to="/registration" className="px-3 min-h-[44px] flex items-center text-sm text-stone-400 hover:text-galaksi-100">
+            Check-in
+          </Link>
           <IconButton label={alerts === 'granted' ? 'Alerts on (tap to re-register device)' : 'Enable alerts on this device'} onClick={turnOnAlerts}>
             <FiBell className={alerts === 'granted' ? 'text-green-300' : ''} />
           </IconButton>

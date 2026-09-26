@@ -13,6 +13,7 @@
     "@hookform/resolvers": "^5.9.1",
     "@supabase/supabase-js": "^2.50.3",
     "framer-motion": "^13.4.1",
+    "qr-scanner": "^1.4.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

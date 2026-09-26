@@ -11,6 +11,7 @@ const PaymentPage      = lazy(() => import('./pages/PaymentPage'))
 const AdminPage        = lazy(() => import('./pages/AdminPage'))
 const TicketPage       = lazy(() => import('./pages/TicketPage'))
 const MyRegistrationPage = lazy(() => import('./pages/MyRegistrationPage'))
+const CheckInPage      = lazy(() => import('./pages/CheckInPage'))
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
               <Route path="/admin"             element={<AdminPage />} />
               <Route path="/ticket/:id"        element={<TicketPage />} />
               <Route path="/my-registration"   element={<MyRegistrationPage />} />
+              <Route path="/registration"      element={<CheckInPage />} />
             </Routes>
           </Suspense>
         </div>
