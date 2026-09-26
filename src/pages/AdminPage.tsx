@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   FiCheck, FiX, FiEye, FiDownload, FiRefreshCw, FiLogOut, FiChevronDown, FiSearch,
-  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2, FiUserCheck,
+  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2, FiUserCheck, FiArrowDown, FiArrowUp,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { AdminShell as Shell, AdminLoginForm as LoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
@@ -37,6 +37,8 @@ interface AdminTeam {
   same_device_count: number
   members: AdminMember[]
 }
+
+const SORT_KEY = 'ignitex:admin-sort'
 
 const FILTERS: { key: 'review' | PaymentStatus | 'all'; label: string }[] = [
   { key: 'review',   label: 'To review' },
@@ -82,6 +84,13 @@ function Dashboard({ email }: { email: string }) {
   const [forbidden, setForbidden] = useState(false)
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('review')
   const [query, setQuery] = useState('')
+  const [newestFirst, setNewestFirst] = useState(() => {
+    try { return localStorage.getItem(SORT_KEY) !== 'oldest' } catch { return true }
+  })
+  const toggleSort = () => setNewestFirst((v) => {
+    try { localStorage.setItem(SORT_KEY, v ? 'oldest' : 'newest') } catch { /* private mode */ }
+    return !v
+  })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -213,9 +222,9 @@ function Dashboard({ email }: { email: string }) {
         t.members.some((m) => m.name.toLowerCase().includes(q) || m.phone.includes(q))
       )
     })
-      // Newest registration first; the first team to register sits at the bottom as #1
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-  }, [teams, filter, query])
+      // By registration time: newest first (default) or oldest first (#1 at the top)
+      .sort((a, b) => (newestFirst ? -1 : 1) * a.created_at.localeCompare(b.created_at))
+  }, [teams, filter, query, newestFirst])
 
   const serialOf = useMemo(() => {
     const byAge = [...teams].sort((a, b) => a.created_at.localeCompare(b.created_at))
@@ -298,7 +307,17 @@ function Dashboard({ email }: { email: string }) {
             )
           })}
         </div>
-        <div className="relative lg:w-80">
+        <div className="flex gap-2 lg:w-[26rem]">
+        <button
+          onClick={toggleSort}
+          title="Sort by registration time"
+          aria-label={`Sorted ${newestFirst ? "newest" : "oldest"} first. Tap to reverse.`}
+          className="shrink-0 flex items-center gap-2 px-3.5 min-h-[48px] rounded-xl bg-white/5 text-sm font-semibold text-stone-300 hover:text-galaksi-100"
+        >
+          {newestFirst ? <FiArrowDown /> : <FiArrowUp />}
+          {newestFirst ? "Newest first" : "Oldest first"}
+        </button>
+        <div className="relative flex-1 min-w-0">
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
           <input
             type="search"
@@ -308,6 +327,7 @@ function Dashboard({ email }: { email: string }) {
             aria-label="Search teams"
             className="input-galaksi pl-11 py-3"
           />
+        </div>
         </div>
       </div>
 
