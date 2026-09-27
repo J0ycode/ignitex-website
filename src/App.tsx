@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import ScrollToTop from './components/ScrollToTop'
+import AppErrorBoundary from './components/AppErrorBoundary'
 import LandingPage from './pages/LandingPage'
 
 // Everything past the landing page is code-split so first load on mobile stays light
@@ -22,7 +23,8 @@ export default function App() {
         <Navbar />
 
         <div className="relative z-10">
-          <Suspense fallback={null}>
+          <AppErrorBoundary>
+          <Suspense fallback={<PageLoading />}>
             <Routes>
               <Route path="/"                  element={<LandingPage />} />
               <Route path="/register"          element={<RegisterPage />} />
@@ -35,6 +37,7 @@ export default function App() {
               <Route path="/registration"      element={<CheckInPage />} />
             </Routes>
           </Suspense>
+          </AppErrorBoundary>
         </div>
 
         <Toaster
@@ -59,5 +62,13 @@ export default function App() {
         />
       </div>
     </BrowserRouter>
+  )
+}
+
+function PageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="font-mono text-sm text-stone-400">Loading…</p>
+    </div>
   )
 }
