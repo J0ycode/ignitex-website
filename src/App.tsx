@@ -12,6 +12,7 @@ const AdminPage        = lazy(() => import('./pages/AdminPage'))
 const TicketPage       = lazy(() => import('./pages/TicketPage'))
 const MyRegistrationPage = lazy(() => import('./pages/MyRegistrationPage'))
 const CheckInPage      = lazy(() => import('./pages/CheckInPage'))
+const AdminPrintPage   = lazy(() => import('./pages/AdminPrintPage'))
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/payment"           element={<PaymentPage />} />
               <Route path="/confirmation"      element={<Navigate to="/my-registration" replace />} />
               <Route path="/admin"             element={<AdminPage />} />
+              <Route path="/admin/print"       element={<AdminPrintPage />} />
               <Route path="/ticket/:id"        element={<TicketPage />} />
               <Route path="/my-registration"   element={<MyRegistrationPage />} />
               <Route path="/registration"      element={<CheckInPage />} />

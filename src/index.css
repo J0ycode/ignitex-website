@@ -113,3 +113,12 @@
   background: #FF6B1A;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Printing (/admin/print): plain white A4 pages, no site chrome */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html, body, #root, #root > div { background: #fff !important; }
+  .print-sheet { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-sheet tr { break-inside: avoid; }
+  .print-sheet thead { display: table-header-group; } /* repeat header row on every page */
+}

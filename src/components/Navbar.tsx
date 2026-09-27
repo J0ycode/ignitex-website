@@ -13,7 +13,7 @@ export default function Navbar() {
   const location = useLocation()
   const [open, setOpen] = useState(false)
   // Hide the Register CTA where it's redundant or out of place
-  const hideRegister = ['/register', '/admin', '/registration'].includes(location.pathname)
+  const hideRegister = ['/register', '/admin', '/admin/print', '/registration'].includes(location.pathname)
   const onMyTicket = location.pathname === '/my-registration'
 
   // Close the mobile menu on navigation and on Escape
@@ -28,7 +28,7 @@ export default function Navbar() {
   const linkCls = 'text-sm lg:text-[15px] text-stone-400 hover:text-galaksi-100 transition-colors'
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-ink border-b border-ink-line">
+    <nav className="print:hidden fixed top-0 left-0 right-0 z-50 bg-ink border-b border-ink-line">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]">
         <Link
           to="/"
