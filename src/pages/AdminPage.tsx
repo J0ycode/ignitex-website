@@ -31,6 +31,7 @@ interface AdminTeam {
   payment_screenshot_url: string | null
   payment_submitted_at: string | null
   ticket_sent_at: string | null
+  final_mail_sent_at: string | null
   registered_ip: string | null
   payment_ip: string | null
   payment_payee_upi: string | null
@@ -393,6 +394,32 @@ function TeamCard({ team, serial, onSetStatus, onVerify, onDelete }: {
     await onVerify(team)
     setBusy(false)
   }
+  // Final-round selection email (send-selection Edge Function)
+  const [selBusy, setSelBusy] = useState(false)
+  const [selSentAt, setSelSentAt] = useState(team.final_mail_sent_at)
+  useEffect(() => setSelSentAt(team.final_mail_sent_at), [team.final_mail_sent_at])
+  const sendSelection = async () => {
+    const msg = selSentAt
+      ? `${team.team_name} was already sent the final-round email (${formatWhen(selSentAt)}).\n\nSend it again?`
+      : `Send the final-round selection email to ${team.team_name}?\n\n` +
+        `It goes to all ${team.members.length} members and says their team is selected for the Final Round ` +
+        `(Tue 29 Sep · MBA Lab · report 9:30 AM).`
+    if (!window.confirm(msg)) return
+    setSelBusy(true)
+    const { data, error } = await supabase.functions.invoke('send-selection', {
+      body: { registration_id: team.registration_id },
+    })
+    let body: { emailed?: boolean; sent_at?: string; error?: string } | null = data
+    if (error instanceof FunctionsHttpError) body = await error.context.json().catch(() => null)
+    setSelBusy(false)
+    if (body?.emailed) {
+      setSelSentAt(body.sent_at ?? new Date().toISOString())
+      toast.success(`Final-round email sent to ${team.team_name}`)
+    } else {
+      toast.error(body?.error === 'EMAIL_FAILED' ? 'Email failed to send — try again' : `Failed: ${body?.error ?? error?.message ?? 'unknown'}`)
+    }
+  }
+
   const status = STATUS_STYLE[team.payment_status] ?? STATUS_STYLE.pending
   const leader = team.members.find((m) => m.is_leader) ?? team.members[0]
 
@@ -539,6 +566,19 @@ function TeamCard({ team, serial, onSetStatus, onVerify, onDelete }: {
             <FiMail /> {busy ? 'Sending…' : team.ticket_sent_at ? 'Resend email' : 'Send email'}
           </button>
         </div>
+      )}
+
+      {team.payment_status === 'verified' && (
+        <button
+          onClick={sendSelection}
+          disabled={selBusy}
+          className={`mt-2 w-full flex items-center justify-center gap-1.5 min-h-[44px] rounded-xl text-sm font-semibold disabled:opacity-40 ${
+            selSentAt ? 'bg-white/5 text-stone-300' : 'bg-galaksi-500/20 text-galaksi-100 border border-galaksi-500/40'
+          }`}
+        >
+          <FiAward />
+          {selBusy ? 'Sending…' : selSentAt ? `Final-round email sent ${formatWhen(selSentAt)} · Resend` : 'Send final-round email'}
+        </button>
       )}
 
       <div className="mt-3 pt-3 flex items-center justify-between border-t border-ink-line">

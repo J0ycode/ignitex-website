@@ -18,3 +18,9 @@ entrypoint = "./functions/notify-admins/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/checkin-login/index.ts"
+
+# Final-round selection email. Called from /admin with the organiser's session.
+[functions.send-selection]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/send-selection/index.ts"
