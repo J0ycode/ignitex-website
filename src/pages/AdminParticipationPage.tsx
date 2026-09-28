@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { AdminShell, AdminLoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import igniteLogo from '../assets/ignitex-logo.webp'
 import txaLogo from '../assets/txa-logo.webp'
+import niceLogo from '../assets/nice-logo.png'
 
 /*
  * Certificates of Participation, printed on plain A4 paper (landscape, in colour).
@@ -242,16 +243,21 @@ function Certificate({ name, team, w }: { name: string; team: string; w: Wording
       <div className="pc-panel">
         <p className="pc-year">20<br />26</p>
         <PanelArt />
-        <div className="pc-panel-logos">
-          <img src={igniteLogo} alt="igniteX" className="pc-ignite" />
-          <img src={txaLogo} alt="TXA" className="pc-txa" />
-        </div>
+        {/* igniteX logo runs up the panel */}
+        <img src={igniteLogo} alt="igniteX" className="pc-ignite" />
+        <img src={txaLogo} alt="TXA" className="pc-txa" />
       </div>
 
       {/* Main */}
       <div className="pc-main">
         <div className="pc-top">
-          <p className="pc-org"><span className="pc-dot" /> igniteX Ideathon · CSE Association</p>
+          <div className="pc-college">
+            <img src={niceLogo} alt="NiCE crest" className="pc-crest" />
+            <div>
+              <p className="pc-college-name">Nirmala College of Engineering</p>
+              <p className="pc-org"><span className="pc-dot" /> CSE Association · igniteX Ideathon 2026</p>
+            </div>
+          </div>
           <p className="pc-when">{w.place},<br />{w.date}</p>
         </div>
 
@@ -346,19 +352,21 @@ const PARTICIPATION_CSS = `
 .pc-panel { position: relative; width: 62mm; margin: 7mm 0 7mm 7mm; background: #141312; overflow: hidden; }
 .pc-year { position: absolute; top: 7mm; left: 7mm; z-index: 1; margin: 0; font: 700 26pt/1 'IBM Plex Mono', monospace; color: #FBF8F3; }
 .pc-art { position: absolute; inset: 0; width: 100%; height: 100%; }
-.pc-panel-logos { position: absolute; left: 0; right: 0; bottom: 8mm; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3mm;
-  background: linear-gradient(to top, #141312 60%, rgba(20,19,18,0)); padding-top: 10mm; }
-.pc-ignite { width: 44mm; }
-.pc-txa { width: 16mm; }
+.pc-ignite { position: absolute; left: 50%; top: 56%; z-index: 1; width: 118mm; max-width: none;
+  transform: translate(-50%, -50%) rotate(-90deg); filter: drop-shadow(0 0 2.5mm #141312); }
+.pc-txa { position: absolute; left: 50%; bottom: 7mm; z-index: 1; width: 15mm; transform: translateX(-50%); }
 
 .pc-main { position: relative; flex: 1; padding: 15mm 18mm 15mm 17mm; display: flex; flex-direction: column; }
 .pc-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.pc-org { margin: 0; display: flex; align-items: center; gap: 2mm; font: 600 10pt 'IBM Plex Mono', monospace; color: #1D1B19; }
+.pc-college { display: flex; align-items: center; gap: 4mm; }
+.pc-crest { width: 20mm; height: 20mm; object-fit: contain; mix-blend-mode: multiply; }
+.pc-college-name { margin: 0; font: 700 15pt/1.15 'IBM Plex Mono', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #141312; }
+.pc-org { margin: 1.5mm 0 0; display: flex; align-items: center; gap: 2mm; font: 600 8.5pt 'IBM Plex Mono', monospace; color: #57534E; }
 .pc-dot { width: 2.4mm; height: 2.4mm; border-radius: 50%; background: #FF6B1A; display: inline-block; }
 .pc-when { margin: 0; padding: 2mm 5mm; border: 0.35mm solid #FF6B1A; border-radius: 999px; text-align: right;
   font: 600 9.5pt/1.35 'IBM Plex Mono', monospace; color: #1D1B19; }
 
-.pc-title-row { position: relative; margin-top: 15mm; }
+.pc-title-row { position: relative; margin-top: 12mm; }
 .pc-title { margin: 0; font: 700 31pt/1.12 'IBM Plex Mono', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #141312; }
 .pc-spark-lg { position: absolute; right: 20mm; top: 4mm; width: 16mm; height: 16mm; }
 .pc-spark-sm { position: absolute; right: 40mm; top: 13mm; width: 6mm; height: 6mm; }
