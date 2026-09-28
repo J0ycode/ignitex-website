@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { FiArrowLeft, FiPrinter } from 'react-icons/fi'
@@ -44,7 +44,9 @@ const DEFAULTS: Wording = {
 }
 
 const WORDING_KEY = 'ignitex:participation-wording'
-const SKIP_KEY = 'ignitex:participation-skip'
+// Members left out, keyed by memberKey(); everyone is included by default
+const SKIP_KEY = 'ignitex:participation-skip-members'
+const memberKey = (teamId: string, name: string) => `${teamId}|${name}`
 
 /** "ANANTHAKRISHNA P S" → "Ananthakrishna P S"; mixed-case names are left alone. */
 function tidyName(raw: string) {
@@ -76,7 +78,6 @@ function Participation() {
   const [teams, setTeams] = useState<PTeam[]>([])
   const [forbidden, setForbidden] = useState(false)
   const [wording, setWording] = useState<Wording>(() => load(WORDING_KEY, DEFAULTS))
-  // registration_id → true when that team is left out
   const [skip, setSkip] = useState<Record<string, boolean>>(() => load(SKIP_KEY, {}))
 
   useEffect(() => { try { localStorage.setItem(WORDING_KEY, JSON.stringify(wording)) } catch { /* private mode */ } }, [wording])
@@ -96,11 +97,15 @@ function Participation() {
   useEffect(() => { loadTeams() }, [loadTeams])
 
   const certificates = useMemo(() => teams
-    .filter((t) => !skip[t.registration_id])
     .flatMap((t) => [...t.members]
       .sort((a, b) => Number(b.is_leader) - Number(a.is_leader))
-      .map((m) => ({ key: `${t.registration_id}-${m.name}`, name: tidyName(m.name), team: t.team_name.trim() }))),
+      .filter((m) => !skip[memberKey(t.registration_id, m.name)])
+      .map((m) => ({ key: memberKey(t.registration_id, m.name), name: tidyName(m.name), team: t.team_name.trim() }))),
   [teams, skip])
+
+  const totalMembers = teams.reduce((n, t) => n + t.members.length, 0)
+  const setMembers = (t: PTeam, include: boolean, names = t.members.map((m) => m.name)) =>
+    setSkip((sk) => ({ ...sk, ...Object.fromEntries(names.map((n) => [memberKey(t.registration_id, n), !include])) }))
 
   const set = (k: keyof Wording, v: string) => setWording((w) => ({ ...w, [k]: v }))
 
@@ -131,28 +136,21 @@ function Participation() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:items-start">
           <section className="space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-display font-bold text-galaksi-100">Teams ({teams.length - Object.values(skip).filter(Boolean).length} of {teams.length})</h2>
+              <h2 className="font-display font-bold text-galaksi-100">Participants ({certificates.length} of {totalMembers})</h2>
               <div className="flex gap-3 text-xs">
                 <button onClick={() => setSkip({})} className="text-galaksi-300 min-h-[36px]">Select all</button>
-                <button onClick={() => setSkip(Object.fromEntries(teams.map((t) => [t.registration_id, true])))} className="text-stone-400 min-h-[36px]">Clear</button>
+                <button onClick={() => setSkip(Object.fromEntries(teams.flatMap((t) => t.members.map((m) => [memberKey(t.registration_id, m.name), true]))))} className="text-stone-400 min-h-[36px]">Clear</button>
               </div>
             </div>
             <ul className="grid gap-2 sm:grid-cols-2">
               {teams.map((t) => (
-                <li key={t.registration_id}>
-                  <label className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={!skip[t.registration_id]}
-                      onChange={(e) => setSkip((s) => ({ ...s, [t.registration_id]: !e.target.checked }))}
-                      className="mt-1 w-4 h-4 accent-orange-500"
-                    />
-                    <span className="min-w-0">
-                      <span className="block font-semibold text-galaksi-100 truncate">{t.team_name}</span>
-                      <span className="block text-xs text-stone-400">{t.members.map((m) => tidyName(m.name)).join(', ')}</span>
-                    </span>
-                  </label>
-                </li>
+                <TeamPicker
+                  key={t.registration_id}
+                  team={t}
+                  isIncluded={(name) => !skip[memberKey(t.registration_id, name)]}
+                  onTeam={(include) => setMembers(t, include)}
+                  onMember={(name, include) => setMembers(t, include, [name])}
+                />
               ))}
               {teams.length === 0 && <li className="text-sm text-stone-400">Loading verified teams…</li>}
             </ul>
@@ -187,6 +185,52 @@ function Participation() {
         {certificates.map((c) => <Certificate key={c.key} name={c.name} team={c.team} w={wording} />)}
       </div>
     </div>
+  )
+}
+
+/** Team tick box (all / some / none) with a tick box per member underneath. */
+function TeamPicker({ team, isIncluded, onTeam, onMember }: {
+  team: PTeam
+  isIncluded: (name: string) => boolean
+  onTeam: (include: boolean) => void
+  onMember: (name: string, include: boolean) => void
+}) {
+  const included = team.members.filter((m) => isIncluded(m.name)).length
+  const all = included === team.members.length
+  const teamBox = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (teamBox.current) teamBox.current.indeterminate = included > 0 && !all }, [included, all])
+
+  return (
+    <li className={`p-3 rounded-xl border ${included ? 'bg-white/[0.04] border-white/[0.06]' : 'bg-transparent border-white/[0.04] opacity-60'}`}>
+      <label className="flex items-center gap-3 cursor-pointer">
+        <input
+          ref={teamBox}
+          type="checkbox"
+          checked={all}
+          onChange={() => onTeam(!all)}
+          className="w-4 h-4 accent-orange-500"
+        />
+        <span className="min-w-0 flex-1 font-semibold text-galaksi-100 truncate">{team.team_name}</span>
+        <span className="text-xs text-stone-500 tabular-nums">{included}/{team.members.length}</span>
+      </label>
+      <ul className="mt-2 ml-7 space-y-1">
+        {[...team.members].sort((a, b) => Number(b.is_leader) - Number(a.is_leader)).map((m) => (
+          <li key={m.name}>
+            <label className="flex items-center gap-2.5 min-h-[30px] cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={isIncluded(m.name)}
+                onChange={(e) => onMember(m.name, e.target.checked)}
+                className="w-3.5 h-3.5 accent-orange-500"
+              />
+              <span className={isIncluded(m.name) ? 'text-stone-200' : 'text-stone-500 line-through'}>
+                {tidyName(m.name)}{m.is_leader && <span className="text-stone-500 no-underline"> · leader</span>}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </li>
   )
 }
 
