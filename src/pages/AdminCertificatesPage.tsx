@@ -65,6 +65,7 @@ interface CertTeam {
   created_at: string
   team_name: string
   payment_status: string
+  is_finalist: boolean
   members: { name: string; is_leader: boolean }[]
 }
 
@@ -116,7 +117,8 @@ function CertificateDesk() {
       else toast.error('Could not load teams')
       return
     }
-    setTeams(((data as CertTeam[]) ?? []).filter((t) => t.payment_status === 'verified')
+    // Prizes are decided in the Final Round, so only finalist teams are listed
+    setTeams(((data as CertTeam[]) ?? []).filter((t) => t.payment_status === 'verified' && t.is_finalist)
       .sort((a, b) => a.created_at.localeCompare(b.created_at)))
   }, [])
   useEffect(() => { load() }, [load])
@@ -185,7 +187,7 @@ function CertificateDesk() {
           {/* Who gets a certificate */}
           <section className="space-y-3">
             <h2 className="font-display font-bold text-galaksi-100">1. Choose prizes</h2>
-            <p className="text-xs text-stone-400">Every member of a team with a prize gets a certificate. Leave blank for none.</p>
+            <p className="text-xs text-stone-400">Final Round teams only (tick them on the admin page). Every member of a team with a prize gets a certificate.</p>
             <ul className="space-y-2">
               {teams.map((t, i) => (
                 <li key={t.registration_id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
@@ -197,7 +199,7 @@ function CertificateDesk() {
                   <PrizeInput value={prizes[t.registration_id] ?? ''} onChange={(v) => setPrizes((p) => ({ ...p, [t.registration_id]: v }))} />
                 </li>
               ))}
-              {teams.length === 0 && <li className="text-sm text-stone-400">Loading verified teams…</li>}
+              {teams.length === 0 && <li className="text-sm text-stone-400">Loading finalist teams…</li>}
             </ul>
 
             <div className="pt-2 space-y-2">
