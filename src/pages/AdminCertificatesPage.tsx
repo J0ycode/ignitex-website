@@ -42,22 +42,22 @@ const DEFAULTS: Settings = {
   date: '28 September 2026',
   occasion: 'CSE Association Inauguration',
   year: '26',
-  fontSize: 15,
+  fontSize: 17,
   offsetX: 0,
   offsetY: 0,
   fields: {
-    name:     { x: 103, y: 113, w: 152 },
-    prize:    { x: 92,  y: 123, w: 36 },
-    event:    { x: 148, y: 123, w: 124 },
-    date:     { x: 117, y: 133, w: 86 },
-    occasion: { x: 69,  y: 144, w: 57 },
-    year:     { x: 180, y: 144, w: 8 },
+    name:     { x: 116, y: 112.5, w: 140 },
+    prize:    { x: 68,  y: 125, w: 58 },
+    event:    { x: 152, y: 125, w: 105 },
+    date:     { x: 122, y: 135, w: 88 },
+    occasion: { x: 48,  y: 146, w: 60 },
+    year:     { x: 156.5, y: 146, w: 7 },
   },
 }
 
 const PRIZES = ['', 'First', 'Second', 'Third', 'Special'] as const
 
-const SETTINGS_KEY = 'ignitex:cert-settings'
+const SETTINGS_KEY = 'ignitex:cert-settings-v2'
 const PRIZE_KEY = 'ignitex:cert-prizes'
 
 interface CertTeam {
@@ -159,7 +159,7 @@ function CertificateDesk() {
   return (
     <div className="min-h-screen px-4 sm:px-8 lg:px-12 pt-20 sm:pt-24 pb-16 max-w-7xl mx-auto print:p-0 print:max-w-none">
       <style>{PRINT_CSS}</style>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&display=swap" />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Pinyon+Script&display=swap" />
 
       <div className="print:hidden space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-3 pb-5 border-b border-ink-line">
@@ -313,10 +313,11 @@ function CertificatePage({ cert, settings }: { cert: Certificate; settings: Sett
   }
   return (
     <div className="cert-page">
-      {/* Guides: the dotted lines + labels, only on screen and on test prints */}
+      {/* The real certificate, behind the text on screen only — never printed */}
+      <img src="/cert-template.jpg" alt="" className="cert-bg absolute inset-0 w-full h-full" />
+
+      {/* Dotted lines: printed only on the plain-paper test page, to line it up */}
       <div className="cert-guide absolute inset-0">
-        <div className="absolute inset-[6mm] border border-dashed border-neutral-300" />
-        <p className="absolute left-0 right-0 top-[85mm] text-center text-[7mm] text-neutral-300 font-serif">Certificate of Appreciation</p>
         {(Object.keys(FIELD_LABELS) as FieldKey[]).map((f) => {
           const p = settings.fields[f]
           return (
@@ -333,16 +334,19 @@ function CertificatePage({ cert, settings }: { cert: Certificate; settings: Sett
         const p = settings.fields[f]
         const text = values[f]
         if (!text) return null
-        // Shrink long text so it stays on its dotted line
-        const fitPt = (p.w * 2.835) / (Math.max(text.length, 1) * 0.47)
-        const size = Math.min(settings.fontSize, fitPt)
+        const isName = f === 'name'
+        // Name in a larger script; shrink any text that would overflow its dotted line
+        const base = isName ? settings.fontSize * 1.55 : settings.fontSize
+        const fitPt = (p.w * 2.835) / (Math.max(text.length, 1) * (isName ? 0.42 : 0.45))
+        const size = Math.min(base, fitPt)
         return (
           <div
             key={f}
-            className="cert-text absolute text-center whitespace-nowrap leading-none"
+            className={`cert-text absolute text-center whitespace-nowrap leading-none ${isName ? 'cert-name' : ''}`}
             style={{
               left: `${p.x + settings.offsetX}mm`,
-              top: `${p.y + settings.offsetY - 1}mm`,
+              // Sit just above the dots (the script font needs less lift than the serif)
+              top: `${p.y + settings.offsetY + (isName ? 0.6 : -0.7)}mm`,
               width: `${p.w}mm`,
               fontSize: `${size}pt`,
               transform: 'translateY(-100%)',
@@ -404,16 +408,19 @@ function NumberSetting({ label, value, onChange }: { label: string; value: numbe
 // with only the text (guides print only in test mode).
 const PRINT_CSS = `
 .cert-page {
-  position: relative; width: 297mm; height: 210mm; background: #fff; color: #1f2a5a;
-  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 600;
+  position: relative; width: 297mm; height: 210mm; background: #fff; color: #1c2f6e;
+  font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-weight: 700;
   box-shadow: 0 10px 30px rgba(0,0,0,.4); overflow: hidden; zoom: 0.5; margin: 0 auto;
 }
+.cert-name { font-family: 'Pinyon Script', 'Cormorant Garamond', cursive; font-style: normal; font-weight: 400; }
+.cert-guide { display: none; }
 @media (min-width: 1024px) { .cert-page { zoom: 0.75; } }
 @media (max-width: 640px) { .cert-page { zoom: 0.3; } }
 @media print {
   @page { size: A4 landscape; margin: 0; }
-  .cert-page { zoom: 1 !important; box-shadow: none; margin: 0; break-after: page; }
+  .cert-page { zoom: 1 !important; box-shadow: none; margin: 0; break-after: page; background: none; }
   .cert-page:last-child { break-after: auto; }
-  .cert-pages:not(.cert-test) .cert-guide { display: none; }
+  .cert-bg { display: none !important; }
+  .cert-test .cert-guide { display: block; }
 }
 `

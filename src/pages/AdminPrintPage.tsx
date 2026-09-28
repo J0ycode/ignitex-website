@@ -112,6 +112,7 @@ function PrintSheet() {
 
   return (
     <div className="min-h-screen px-4 sm:px-8 pt-20 sm:pt-24 pb-16 print:p-0">
+      <style>{'@media print { @page { size: A4; margin: 12mm; } }'}</style>
       {/* Controls — not printed */}
       <div className="print:hidden max-w-[210mm] mx-auto mb-5 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
