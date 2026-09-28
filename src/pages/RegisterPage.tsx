@@ -96,7 +96,7 @@ export default function RegisterPage() {
       <p className="flex items-center gap-2 mb-8 text-sm text-stone-400">
         <span className="w-2 h-2 rounded-full bg-green-400 animate-beat" aria-hidden />
         <span>
-          <span className="text-galaksi-100 font-semibold">{Math.max(MAX_TEAMS - teamCount, 0)}</span> of {MAX_TEAMS} slots left · closes 28 Sep, 9:20 AM
+          <span className="text-galaksi-100 font-semibold">{Math.max(MAX_TEAMS - teamCount, 0)}</span> of {MAX_TEAMS} slots left · closes 28 Sep, 9:40 AM
         </span>
       </p>
 
