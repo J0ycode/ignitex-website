@@ -44,11 +44,12 @@ Deno.serve(async (req) => {
     const db = createClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'))
     const { data: team, error: teamErr } = await db
       .from('teams')
-      .select('id, registration_id, team_name, payment_status, members(name, email, is_leader)')
+      .select('id, registration_id, team_name, payment_status, is_finalist, members(name, email, is_leader)')
       .eq('registration_id', registration_id)
       .single()
     if (teamErr || !team) return json({ error: 'TEAM_NOT_FOUND' }, 404)
     if (team.payment_status !== 'verified') return json({ error: 'NOT_VERIFIED' }, 409)
+    if (!team.is_finalist) return json({ error: 'NOT_FINALIST' }, 409)
 
     // Final Round pass = ticket page with ?r=final; the QR encodes the same URL
     const passUrl = `${env('SITE_URL').replace(/\/+$/, '')}/ticket/${encodeURIComponent(team.registration_id)}?r=final`

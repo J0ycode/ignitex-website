@@ -32,6 +32,7 @@ interface AdminTeam {
   payment_submitted_at: string | null
   ticket_sent_at: string | null
   final_mail_sent_at: string | null
+  is_finalist: boolean
   registered_ip: string | null
   payment_ip: string | null
   payment_payee_upi: string | null
@@ -50,11 +51,12 @@ const PAYEE_NAMES: Record<string, string> = {
   'azeemelsalim1234-2@okicici': 'Azeem El Salim',
 }
 
-const FILTERS: { key: 'review' | PaymentStatus | 'all'; label: string }[] = [
+const FILTERS: { key: 'review' | PaymentStatus | 'finalists' | 'all'; label: string }[] = [
   { key: 'review',   label: 'To review' },
   { key: 'verified', label: 'Verified' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'pending',  label: 'Unpaid' },
+  { key: 'finalists', label: 'Finalists' },
   { key: 'all',      label: 'All' },
 ]
 
@@ -161,6 +163,14 @@ function Dashboard({ email }: { email: string }) {
   }
 
   /** Deletes the team (frees its slot) and its payment-proof file. */
+  /** Marks a team as selected (or not) for the Final Round. */
+  const setFinalist = async (team: AdminTeam, value: boolean) => {
+    const { error } = await supabase.rpc('admin_set_finalist', { p_registration_id: team.registration_id, p_value: value })
+    if (error) { toast.error('Could not update'); return }
+    setTeams((ts) => ts.map((t) => (t.registration_id === team.registration_id ? { ...t, is_finalist: value } : t)))
+    toast.success(value ? `${team.team_name} selected for the Final Round` : `${team.team_name} removed from the Final Round`)
+  }
+
   const deleteTeam = async (team: AdminTeam) => {
     const { data: proofPath, error } = await supabase.rpc('admin_delete_team', { p_registration_id: team.registration_id })
     if (error) {
@@ -230,7 +240,8 @@ function Dashboard({ email }: { email: string }) {
       .filter((t) => {
       const statusOk =
         filter === 'all' ||
-        (filter === 'review' ? t.payment_status === 'ticket_uploaded' : t.payment_status === filter)
+        (filter === 'finalists' ? t.is_finalist
+          : filter === 'review' ? t.payment_status === 'ticket_uploaded' : t.payment_status === filter)
       if (!statusOk) return false
       if (!q) return true
       return (
@@ -311,7 +322,7 @@ function Dashboard({ email }: { email: string }) {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-5">
         <div className="flex gap-1 p-1 rounded-xl bg-white/5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-1 sm:self-start">
           {FILTERS.map((f) => {
-            const n = f.key === 'all' ? teams.length : f.key === 'review' ? counts.ticket_uploaded : counts[f.key]
+            const n = f.key === 'all' ? teams.length : f.key === 'finalists' ? teams.filter((t) => t.is_finalist).length : f.key === 'review' ? counts.ticket_uploaded : counts[f.key]
             return (
               <button
                 key={f.key}
@@ -360,7 +371,7 @@ function Dashboard({ email }: { email: string }) {
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((t) => (
-            <TeamCard key={t.registration_id} team={t} serial={serialOf.get(t.registration_id) ?? 0} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} />
+            <TeamCard key={t.registration_id} team={t} serial={serialOf.get(t.registration_id) ?? 0} onSetStatus={setStatus} onVerify={verifyAndSend} onDelete={deleteTeam} onSetFinalist={setFinalist} />
           ))}
         </ul>
       )}
@@ -368,12 +379,13 @@ function Dashboard({ email }: { email: string }) {
   )
 }
 
-function TeamCard({ team, serial, onSetStatus, onVerify, onDelete }: {
+function TeamCard({ team, serial, onSetStatus, onVerify, onDelete, onSetFinalist }: {
   team: AdminTeam
   serial: number
   onSetStatus: (t: AdminTeam, s: PaymentStatus) => void
   onVerify: (t: AdminTeam) => Promise<void>
   onDelete: (t: AdminTeam) => Promise<void>
+  onSetFinalist: (t: AdminTeam, value: boolean) => Promise<void>
 }) {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -569,6 +581,25 @@ function TeamCard({ team, serial, onSetStatus, onVerify, onDelete }: {
       )}
 
       {team.payment_status === 'verified' && (
+        <label className="mt-3 flex items-center justify-between gap-3 px-3 min-h-[44px] rounded-xl bg-white/[0.04] cursor-pointer">
+          <span className={`flex items-center gap-2 text-sm ${team.is_finalist ? 'text-galaksi-100 font-semibold' : 'text-stone-400'}`}>
+            <FiAward className={team.is_finalist ? 'text-galaksi-400' : ''} />
+            {team.is_finalist ? 'Selected for the Final Round' : 'Select for the Final Round'}
+          </span>
+          <input
+            type="checkbox"
+            checked={team.is_finalist}
+            onChange={(e) => {
+              const v = e.target.checked
+              if (!v && !window.confirm(`Remove ${team.team_name} from the Final Round?`)) return
+              onSetFinalist(team, v)
+            }}
+            className="w-5 h-5 accent-orange-500"
+          />
+        </label>
+      )}
+
+      {team.payment_status === 'verified' && team.is_finalist && (
         <button
           onClick={sendSelection}
           disabled={selBusy}
