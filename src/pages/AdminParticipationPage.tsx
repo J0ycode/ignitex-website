@@ -354,10 +354,10 @@ const PARTICIPATION_CSS = `
 .pc-art { position: absolute; inset: 0; width: 100%; height: 100%; }
 /* Dead centre of the panel. The logo file has uneven transparent padding (68 px left,
    16 px right of 865; 2 px top, 14 px bottom of 289), so after rotating it is nudged
-   3.5 mm down and 0.8 mm right to centre the visible artwork itself. */
-.pc-ignite { position: absolute; left: 50%; top: 50%; z-index: 1; width: 118mm; max-width: none;
-  transform: translate(calc(-50% + 0.8mm), calc(-50% + 3.5mm)) rotate(-90deg); filter: drop-shadow(0 0 2.5mm #141312); }
-.pc-txa { position: absolute; left: 50%; bottom: 7mm; z-index: 1; width: 15mm; transform: translateX(-50%); }
+   4 mm down and 0.9 mm right (at 135 mm wide) to centre the visible artwork itself. */
+.pc-ignite { position: absolute; left: 50%; top: 50%; z-index: 1; width: 135mm; max-width: none;
+  transform: translate(calc(-50% + 0.9mm), calc(-50% + 4mm)) rotate(-90deg); filter: drop-shadow(0 0 2.5mm #141312); }
+.pc-txa { position: absolute; left: 50%; bottom: 6mm; z-index: 1; width: 23mm; transform: translateX(-50%); }
 
 .pc-main { position: relative; flex: 1; padding: 15mm 18mm 15mm 17mm; display: flex; flex-direction: column; }
 .pc-top { display: flex; justify-content: space-between; align-items: flex-start; }
