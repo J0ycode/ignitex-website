@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import { FiCalendar, FiClock, FiDownload, FiShare2 } from 'react-icons/fi'
+import { FiCalendar, FiClock, FiDownload, FiMapPin, FiShare2 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import HelpContacts from '../components/HelpContacts'
@@ -10,12 +10,16 @@ import HelpContacts from '../components/HelpContacts'
 interface Ticket {
   registration_id: string
   team_name: string
+  is_finalist?: boolean
   members: { name: string; college: string; is_leader: boolean }[]
 }
 
 export default function TicketPage() {
   const { id = '' } = useParams()
   const registrationId = id.toUpperCase()
+  // ?r=final → Final Round pass (sent with the selection email); only for finalists
+  const [params] = useSearchParams()
+  const wantsFinal = params.get('r') === 'final'
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'not_verified'>('loading')
 
@@ -26,6 +30,7 @@ export default function TicketPage() {
       setTicket({
         registration_id: 'TEST',
         team_name: 'NeuralNinjas',
+        is_finalist: true,
         members: [
           { name: 'Arjun Menon', college: 'CET Trivandrum', is_leader: true },
           { name: 'Priya Nair', college: 'CET Trivandrum', is_leader: false },
@@ -54,6 +59,8 @@ export default function TicketPage() {
       }
     } catch { /* user cancelled */ }
   }
+
+  const isFinalPass = wantsFinal && !!ticket?.is_finalist
 
   if (state === 'loading') {
     return (
@@ -87,12 +94,22 @@ export default function TicketPage() {
         {/* Ticket card */}
         <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: '#161625', border: '1px solid rgba(255,107,26,0.3)' }}>
           <div className="p-6">
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-galaksi-300">igniteX Ideathon · Entry</p>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-galaksi-300">
+              {isFinalPass ? 'igniteX Ideathon · Final Round Pass' : 'igniteX Ideathon · Entry'}
+            </p>
             <h1 className="mt-1 font-display font-extrabold text-2xl text-galaksi-100 break-words">{ticket.team_name}</h1>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-300">
-              <span className="flex items-center gap-1.5"><FiCalendar className="w-4 h-4" /> 28–29 Sep 2026</span>
-              <span className="flex items-center gap-1.5"><FiClock className="w-4 h-4" /> 9:30 AM</span>
-            </div>
+            {isFinalPass ? (
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-300">
+                <span className="flex items-center gap-1.5"><FiCalendar className="w-4 h-4" /> Tue 29 Sep 2026</span>
+                <span className="flex items-center gap-1.5"><FiClock className="w-4 h-4" /> Report 9:30 AM</span>
+                <span className="flex items-center gap-1.5"><FiMapPin className="w-4 h-4" /> MBA Lab</span>
+              </div>
+            ) : (
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-300">
+                <span className="flex items-center gap-1.5"><FiCalendar className="w-4 h-4" /> 28–29 Sep 2026</span>
+                <span className="flex items-center gap-1.5"><FiClock className="w-4 h-4" /> 9:30 AM</span>
+              </div>
+            )}
           </div>
 
           {/* Perforation */}
@@ -119,7 +136,7 @@ export default function TicketPage() {
             </ul>
 
             <span className="mt-5 px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-300">
-              ✓ Payment verified
+              {isFinalPass ? '✓ Selected for the Final Round' : '✓ Payment verified'}
             </span>
           </div>
         </div>

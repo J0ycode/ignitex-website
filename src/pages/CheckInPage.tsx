@@ -20,8 +20,11 @@ interface CheckInMember {
 interface CheckInTeam {
   registration_id: string
   team_name: string
+  is_finalist: boolean
   checked_in_at: string | null
   checked_in_by: string | null
+  checked_in_final_at: string | null
+  checked_in_final_by: string | null
   members: CheckInMember[]
 }
 
@@ -32,9 +35,14 @@ type ScanResult =
 
 const ERRORS: Record<string, string> = {
   TEAM_NOT_FOUND: 'No team with this registration ID.',
+  NOT_FINALIST: 'This team is not in the Final Round list.',
   NOT_VERIFIED: "This team's payment isn't verified — send them to the payments desk.",
   NOT_ADMIN: 'This account is not an organiser.',
 }
+
+type Round = 'day1' | 'final'
+const ROUND_KEY = 'ignitex:desk-round'
+const FINAL_DAY_START = Date.parse('2026-09-29T00:00:00+05:30')
 
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })
@@ -128,6 +136,21 @@ function Desk({ email }: { email: string }) {
   const [manualId, setManualId] = useState('')
   const [result, setResult] = useState<ScanResult | null>(null)
   const [live, setLive] = useState(false)
+  // Day 1 and the Final Round have separate check-ins; default follows the date (IST)
+  const [round, setRoundState] = useState<Round>(() => {
+    try {
+      const saved = localStorage.getItem(ROUND_KEY)
+      if (saved === 'day1' || saved === 'final') return saved
+    } catch { /* private mode */ }
+    return Date.now() >= FINAL_DAY_START ? 'final' : 'day1'
+  })
+  const setRound = (r: Round) => {
+    setRoundState(r)
+    setResult(null)
+    try { localStorage.setItem(ROUND_KEY, r) } catch { /* private mode */ }
+  }
+  const atOf = (t: CheckInTeam) => (round === 'final' ? t.checked_in_final_at : t.checked_in_at)
+  const byOf = (t: CheckInTeam) => (round === 'final' ? t.checked_in_final_by : t.checked_in_by)
   // Shared volunteer account (see checkin-login) — no access to payments
   const isDesk = email.endsWith('@ignitex.invalid')
 
@@ -161,7 +184,7 @@ function Desk({ email }: { email: string }) {
 
   const checkIn = useCallback(async (registrationId: string) => {
     markActive()
-    const { data, error } = await supabase.rpc('admin_check_in', { p_registration_id: registrationId })
+    const { data, error } = await supabase.rpc('admin_check_in', { p_registration_id: registrationId, p_round: round })
     if (error) {
       const code = Object.keys(ERRORS).find((k) => error.message.includes(k))
       setResult({ kind: 'error', message: code ? ERRORS[code] : 'Check-in failed. Try again.' })
@@ -177,11 +200,11 @@ function Desk({ email }: { email: string }) {
       navigator.vibrate?.(150)
     }
     load()
-  }, [load])
+  }, [load, round])
 
   const undo = async (team: CheckInTeam) => {
     if (!window.confirm(`Move ${team.team_name} back to Absent?`)) return
-    const { error } = await supabase.rpc('admin_undo_check_in', { p_registration_id: team.registration_id })
+    const { error } = await supabase.rpc('admin_undo_check_in', { p_registration_id: team.registration_id, p_round: round })
     if (error) toast.error('Undo failed')
     else load()
   }
@@ -194,19 +217,22 @@ function Desk({ email }: { email: string }) {
     setManualId('')
   }
 
+  // Final Round: only finalists are expected
+  const pool = useMemo(() => (round === 'final' ? teams.filter((t) => t.is_finalist) : teams), [teams, round])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return teams
-    return teams.filter((t) =>
+    if (!q) return pool
+    return pool.filter((t) =>
       t.team_name.toLowerCase().includes(q) ||
       t.registration_id.toLowerCase().includes(q) ||
       t.members.some((m) => m.name.toLowerCase().includes(q) || m.phone.includes(q)),
     )
-  }, [teams, query])
+  }, [pool, query])
 
-  const present = filtered.filter((t) => t.checked_in_at)
-  const absent = filtered.filter((t) => !t.checked_in_at)
-  const presentTotal = teams.filter((t) => t.checked_in_at).length
+  const present = filtered.filter((t) => atOf(t))
+  const absent = filtered.filter((t) => !atOf(t))
+  const presentTotal = pool.filter((t) => atOf(t)).length
 
   if (forbidden) {
     return (
@@ -240,6 +266,21 @@ function Desk({ email }: { email: string }) {
         </div>
       </div>
 
+      <div className="flex gap-1 p-1 mb-5 rounded-xl bg-white/5 w-full sm:w-auto sm:inline-flex">
+        {(['day1', 'final'] as const).map((r) => (
+          <button
+            key={r}
+            onClick={() => setRound(r)}
+            aria-pressed={round === r}
+            className={`flex-1 sm:flex-none px-4 min-h-[44px] rounded-lg text-sm font-semibold ${
+              round === r ? 'bg-galaksi-100 text-galaksi-900' : 'text-stone-300 hover:text-galaksi-100'
+            }`}
+          >
+            {r === 'day1' ? 'Day 1 · 28 Sep' : 'Final Round · 29 Sep'}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr] lg:items-start">
         {/* Scanner column */}
         <div className="space-y-4 lg:sticky lg:top-20">
@@ -260,8 +301,8 @@ function Desk({ email }: { email: string }) {
 
           <div className="grid grid-cols-3 gap-2">
             <Stat label="Present" value={presentTotal} tone="text-green-300" />
-            <Stat label="Absent" value={teams.length - presentTotal} tone="text-amber-300" />
-            <Stat label="Tickets" value={teams.length} tone="text-galaksi-100" />
+            <Stat label="Absent" value={pool.length - presentTotal} tone="text-amber-300" />
+            <Stat label={round === 'final' ? 'Finalists' : 'Tickets'} value={pool.length} tone="text-galaksi-100" />
           </div>
         </div>
 
@@ -283,7 +324,7 @@ function Desk({ email }: { email: string }) {
               {present.map((t) => (
                 <TeamRow key={t.registration_id} team={t}>
                   <span className="text-xs text-green-300">
-                    {timeOf(t.checked_in_at!)}{t.checked_in_by && ` · ${t.checked_in_by.split('@')[0]}`}
+                    {timeOf(atOf(t)!)}{byOf(t) && ` · ${byOf(t)!.split('@')[0]}`}
                   </span>
                   <button
                     onClick={() => undo(t)}

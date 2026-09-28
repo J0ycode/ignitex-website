@@ -24,6 +24,9 @@ export interface SelectionTeam {
 }
 
 export interface SelectionEmail {
+  /** Inline QR attachment is referenced from the HTML as cid:final-pass-qr */
+  qrCid: string
+  qrFilename: string
   to: string
   cc: string[]
   subject: string
@@ -34,7 +37,8 @@ export interface SelectionEmail {
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 
-export function buildSelectionEmail(team: SelectionTeam): SelectionEmail {
+/** passUrl: the team's Final Round pass (ticket page with ?r=final) — also what the QR encodes. */
+export function buildSelectionEmail(team: SelectionTeam, passUrl: string): SelectionEmail {
   if (team.members.length === 0) throw new Error('Team has no members')
   const members = [...team.members].sort((a, b) => Number(b.is_leader) - Number(a.is_leader))
   const name = esc(team.team_name)
@@ -63,6 +67,19 @@ export function buildSelectionEmail(team: SelectionTeam): SelectionEmail {
     </table>
     <p style="margin:0 0 16px;font-size:13px;color:#9ca3af">Results and prize distribution will follow the final pitches.</p>
 
+    <div style="margin:16px 0;padding:16px;border:1px solid rgba(255,107,26,0.35);border-radius:14px;text-align:center">
+      <p style="margin:0 0 4px;color:#FF6B1A;font-size:12px;letter-spacing:2px;text-transform:uppercase">Final Round Pass</p>
+      <p style="margin:0 0 12px;color:#fff;font-weight:bold">${name}</p>
+      <div style="background:#fff;border-radius:12px;padding:14px;display:inline-block">
+        <img src="cid:final-pass-qr" alt="Final Round check-in QR" width="200" height="200" style="display:block" />
+        <p style="margin:8px 0 0;color:#111;font-family:monospace;font-size:18px;letter-spacing:3px">${esc(team.registration_id)}</p>
+      </div>
+      <p style="margin:12px 0 0;font-size:13px;color:#CFC6BA">Show this QR at the MBA Lab check-in desk tomorrow.</p>
+      <p style="margin:12px 0 0">
+        <a href="${esc(passUrl)}" style="display:inline-block;background:#FF6B1A;color:#140A03;padding:10px 22px;border-radius:999px;font-weight:bold;text-decoration:none">View pass online</a>
+      </p>
+    </div>
+
     <p style="margin:16px 0 4px;color:#fff;font-weight:bold">How the Final Round works</p>
     <p style="margin:0;color:#CFC6BA">Your team will be given a <strong style="color:#fff">new problem domain</strong> at 10:00 AM and will have until the pitches at 1:00 PM to prepare a solution and presentation.</p>
 
@@ -70,7 +87,7 @@ export function buildSelectionEmail(team: SelectionTeam): SelectionEmail {
     <ul style="margin:0;padding-left:20px;color:#CFC6BA">
       ${li('Your own laptop(s), fully charged, plus chargers')}
       ${li('An HDMI / USB-C adapter if your laptop needs one for the display')}
-      ${li('Your igniteX ticket (QR code) for check-in')}
+      ${li('Your Final Round pass (the QR above) for check-in')}
     </ul>
 
     <p style="margin:16px 0 4px;color:#fff;font-weight:bold">Please note</p>
@@ -105,9 +122,12 @@ export function buildSelectionEmail(team: SelectionTeam): SelectionEmail {
     ...FINAL_ROUND.schedule.map(([t, what]) => `${t}  ${what}`),
     'Results and prize distribution will follow the final pitches.',
     '',
+    `Your Final Round pass (show the QR at check-in): ${passUrl}`,
+    `Registration ID: ${team.registration_id}`,
+    '',
     'Your team will be given a new problem domain at 10:00 AM and will have until the pitches at 1:00 PM to prepare.',
     '',
-    'Please bring: laptop(s) fully charged + chargers, an HDMI / USB-C adapter if needed, and your igniteX ticket (QR).',
+    'Please bring: laptop(s) fully charged + chargers, an HDMI / USB-C adapter if needed, and your Final Round pass (QR).',
     'Report to the MBA Lab by 9:30 AM sharp. All members should be present and take part in the pitch.',
     'Internet and AI tools are allowed. Copying a ready-made solution is not.',
     '',
@@ -126,5 +146,7 @@ export function buildSelectionEmail(team: SelectionTeam): SelectionEmail {
     subject: `igniteX 2026 — ${team.team_name}, you're in the Final Round!`,
     html,
     text,
+    qrCid: 'final-pass-qr',
+    qrFilename: `ignitex-final-${team.registration_id}.png`,
   }
 }

@@ -3,10 +3,11 @@
 // Called from /admin with the organiser's session (verify_jwt = true).
 // Body: { registration_id: string, dry_run?: boolean }
 //   dry_run returns the rendered email without sending (for checking).
-// Secrets: GMAIL_USER, GMAIL_APP_PASSWORD (same as send-ticket).
+// Secrets: GMAIL_USER, GMAIL_APP_PASSWORD, SITE_URL (same as send-ticket).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import nodemailer from 'npm:nodemailer@6'
+import QRCode from 'npm:qrcode@1.5'
 import { buildSelectionEmail } from './email.ts'
 
 const cors = {
@@ -49,8 +50,11 @@ Deno.serve(async (req) => {
     if (teamErr || !team) return json({ error: 'TEAM_NOT_FOUND' }, 404)
     if (team.payment_status !== 'verified') return json({ error: 'NOT_VERIFIED' }, 409)
 
-    const mail = buildSelectionEmail(team)
-    if (dry_run) return json({ dry_run: true, ...mail })
+    // Final Round pass = ticket page with ?r=final; the QR encodes the same URL
+    const passUrl = `${env('SITE_URL').replace(/\/+$/, '')}/ticket/${encodeURIComponent(team.registration_id)}?r=final`
+    const mail = buildSelectionEmail(team, passUrl)
+    if (dry_run) return json({ dry_run: true, pass_url: passUrl, ...mail })
+    const qrPng = await QRCode.toBuffer(passUrl, { width: 480, margin: 1 })
 
     // ── 3. Send ─────────────────────────────────────────────────────────────
     const transporter = nodemailer.createTransport({
@@ -67,6 +71,7 @@ Deno.serve(async (req) => {
         subject: mail.subject,
         html: mail.html,
         text: mail.text,
+        attachments: [{ filename: mail.qrFilename, content: qrPng, cid: mail.qrCid }],
       })
     } catch (mailErr) {
       console.error('Mail failed', mailErr)
