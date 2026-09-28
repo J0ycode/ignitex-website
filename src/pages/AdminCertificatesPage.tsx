@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { FiArrowLeft, FiPrinter } from 'react-icons/fi'
+import { FiArrowLeft, FiMail, FiPrinter } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { AdminShell, AdminLoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import {
   CertificateStyles, Field, IgniteCertificate, SharedSettingsFields, TeamPicker,
   loadStored, memberKey, saveStored, useCertSettings, useNameOverrides,
 } from '../components/IgniteCertificate'
+import { MailStatus, useCertificateMailer, type MailRecord } from '../components/CertificateMailer'
 
 /*
  * Prize & finalist certificates for the Final Round teams, in the same igniteX
@@ -40,6 +41,7 @@ interface CertTeam {
   team_name: string
   payment_status: string
   is_finalist: boolean
+  certificate_mail?: Partial<Record<'participation' | 'prize', MailRecord>> | null
   members: { name: string; is_leader: boolean }[]
 }
 
@@ -94,9 +96,60 @@ function PrizeCertificates() {
         return [...t.members]
           .sort((a, b) => Number(b.is_leader) - Number(a.is_leader))
           .filter((m) => !skip[memberKey(t.registration_id, m.name)])
-          .map((m) => ({ key: memberKey(t.registration_id, m.name), name: names.nameFor(t.registration_id, m.name), team: t.team_name.trim(), award }))
+          .map((m) => ({
+            key: memberKey(t.registration_id, m.name),
+            teamId: t.registration_id,
+            name: names.nameFor(t.registration_id, m.name),
+            team: t.team_name.trim(),
+            award,
+          }))
       })
-  }, [teams, awards, skip])
+  // names changes whenever a name is edited
+  }, [teams, awards, skip, names])
+
+  type Cert = (typeof certificates)[number]
+  const renderCert = (c: Cert) => (
+    <IgniteCertificate
+      name={c.name}
+      team={c.team}
+      prize={c.award.prize}
+      title={c.award.title}
+      badge={c.award.badge}
+      body={c.award.prize ? texts.prizeBody : texts.finalistBody}
+      s={settings}
+    />
+  )
+  const mailer = useCertificateMailer<Cert>({ kind: 'prize', label: 'Final Round certificates', render: renderCert })
+  const recordFor = (t: CertTeam) => mailer.sent[t.registration_id] ?? t.certificate_mail?.prize ?? null
+  const certsFor = (t: CertTeam) => certificates.filter((c) => c.teamId === t.registration_id)
+  const awardLabel = (t: CertTeam) => {
+    const a = awards[t.registration_id] ?? 'finalist'
+    return a ? AWARDS[a].label : 'no award'
+  }
+
+  const emailTeam = (t: CertTeam) => {
+    const n = certsFor(t).length
+    const again = recordFor(t) ? '\n\nThis team was already emailed — send again?' : ''
+    if (!window.confirm(`Email ${t.team_name}'s ${n} ${awardLabel(t)} certificate${n === 1 ? '' : 's'} (one PDF) to the team leader?\nIf the leader's email fails, it goes to the next member.${again}`)) return
+    mailer.sendTeam(t, certsFor(t))
+  }
+
+  /** Emails every Final Round team not yet emailed, one after another. */
+  const emailAll = async () => {
+    const todo = teams.filter((t) => !recordFor(t) && certsFor(t).length > 0)
+    if (todo.length === 0) { toast('Every team with certificates has already been emailed'); return }
+    const list = todo.map((t) => `• ${t.team_name} — ${awardLabel(t)}`).join('\n')
+    if (!window.confirm(`Email certificates to these ${todo.length} team leaders?\n\n${list}\n\nCheck the awards are final first.`)) return
+    const progress = toast.loading(`Emailing 0 / ${todo.length}…`)
+    let ok = 0
+    for (const [i, t] of todo.entries()) {
+      toast.loading(`Emailing ${i + 1} / ${todo.length} — ${t.team_name}…`, { id: progress })
+      if (await mailer.sendTeam(t, certsFor(t), true)) ok++
+    }
+    toast.dismiss(progress)
+    if (ok === todo.length) toast.success(`Emailed all ${ok} teams`)
+    else toast.error(`Emailed ${ok} of ${todo.length} — check the teams marked "Not emailed yet"`, { duration: 9000 })
+  }
 
   const setMembers = (t: CertTeam, include: boolean, names = t.members.map((m) => m.name)) =>
     setSkip((sk) => ({ ...sk, ...Object.fromEntries(names.map((n) => [memberKey(t.registration_id, n), !include])) }))
@@ -119,9 +172,14 @@ function PrizeCertificates() {
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">Prize &amp; finalist certificates</h1>
             <p className="text-sm text-stone-400 mt-1">Final Round teams · full-colour on plain A4 · same design as participation.</p>
           </div>
-          <button onClick={() => window.print()} disabled={!certificates.length} className="btn-galaksi gap-2 px-5 min-h-[48px] disabled:opacity-50">
-            <FiPrinter /> Print {certificates.length} certificates
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={emailAll} disabled={!certificates.length || !!mailer.busyTeam} className="btn-outline-galaksi gap-2 px-5 min-h-[48px] disabled:opacity-50">
+              <FiMail /> Email all teams
+            </button>
+            <button onClick={() => window.print()} disabled={!certificates.length} className="btn-galaksi gap-2 px-5 min-h-[48px] disabled:opacity-50">
+              <FiPrinter /> Print {certificates.length} certificates
+            </button>
+          </div>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:items-start">
@@ -150,6 +208,14 @@ function PrizeCertificates() {
                       {AWARD_ORDER.map((k) => <option key={k} value={k} className="bg-neutral-900">{AWARDS[k].label}</option>)}
                       <option value="" className="bg-neutral-900">— none —</option>
                     </select>
+                  }
+                  footer={
+                    <MailStatus
+                      record={recordFor(t)}
+                      busy={mailer.busyTeam === t.registration_id}
+                      disabled={!!mailer.busyTeam || certsFor(t).length === 0}
+                      onSend={() => emailTeam(t)}
+                    />
                   }
                 />
               ))}
@@ -180,19 +246,9 @@ function PrizeCertificates() {
       </div>
 
       <div className="space-y-6 print:space-y-0">
-        {certificates.map((c) => (
-          <IgniteCertificate
-            key={c.key}
-            name={c.name}
-            team={c.team}
-            prize={c.award.prize}
-            title={c.award.title}
-            badge={c.award.badge}
-            body={c.award.prize ? texts.prizeBody : texts.finalistBody}
-            s={settings}
-          />
-        ))}
+        {certificates.map((c) => <div key={c.key}>{renderCert(c)}</div>)}
       </div>
+      {mailer.stageElement}
     </div>
   )
 }

@@ -203,13 +203,15 @@ export interface PickTeam {
 }
 
 /** Team tick box (all / some / none) with a tick box per member underneath. */
-export function TeamPicker({ team, isIncluded, onTeam, onMember, extra, names }: {
+export function TeamPicker({ team, isIncluded, onTeam, onMember, extra, names, footer }: {
   team: PickTeam
   isIncluded: (name: string) => boolean
   onTeam: (include: boolean) => void
   onMember: (name: string, include: boolean) => void
   /** Name editing (from useNameOverrides) */
   names: ReturnType<typeof useNameOverrides>
+  /** Optional row under the members (e.g. the email button) */
+  footer?: React.ReactNode
   /** Optional control shown on the team row (e.g. the prize picker) */
   extra?: React.ReactNode
 }) {
@@ -240,6 +242,7 @@ export function TeamPicker({ team, isIncluded, onTeam, onMember, extra, names }:
           />
         ))}
       </ul>
+      {footer}
     </li>
   )
 }
@@ -477,8 +480,13 @@ const CERT_CSS = `
 .pc-sig-name { margin: 0; padding-bottom: 1.5mm; border-bottom: 0.35mm solid #1D1B19; font: 700 12pt 'Archivo', sans-serif; min-height: 5mm; }
 .pc-sig-title { margin: 1.5mm 0 0; font-size: 10pt; color: #57534E; }
 
+/* Off-screen full-size copies used to build the emailed PDF (see CertificateMailer) */
+.pc-export { position: fixed; left: -100000px; top: 0; pointer-events: none; }
+.pc-export .pc-page { zoom: 1 !important; box-shadow: none !important; margin: 0 !important; }
+
 @media print {
   @page { size: A4 landscape; margin: 0; }
+  .pc-export { display: none; }
   .pc-page { zoom: 1 !important; box-shadow: none; margin: 0; break-after: page; }
   .pc-page:last-child { break-after: auto; }
 }

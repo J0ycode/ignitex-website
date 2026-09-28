@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { FiArrowLeft, FiPrinter } from 'react-icons/fi'
+import { FiArrowLeft, FiMail, FiPrinter } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { AdminShell, AdminLoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import {
   CertificateStyles, Field, IgniteCertificate, SharedSettingsFields, TeamPicker,
   loadStored, memberKey, saveStored, useCertSettings, useNameOverrides,
 } from '../components/IgniteCertificate'
+import { MailStatus, useCertificateMailer, type MailRecord } from '../components/CertificateMailer'
 
 /*
  * Certificates of Participation — one page per ticked member of every verified team.
@@ -18,6 +19,7 @@ interface PTeam {
   created_at: string
   team_name: string
   payment_status: string
+  certificate_mail?: Partial<Record<'participation' | 'prize', MailRecord>> | null
   members: { name: string; is_leader: boolean }[]
 }
 
@@ -70,8 +72,45 @@ function Participation() {
     .flatMap((t) => [...t.members]
       .sort((a, b) => Number(b.is_leader) - Number(a.is_leader))
       .filter((m) => !skip[memberKey(t.registration_id, m.name)])
-      .map((m) => ({ key: memberKey(t.registration_id, m.name), name: names.nameFor(t.registration_id, m.name), team: t.team_name.trim() }))),
-  [teams, skip])
+      .map((m) => ({
+        key: memberKey(t.registration_id, m.name),
+        teamId: t.registration_id,
+        name: names.nameFor(t.registration_id, m.name),
+        team: t.team_name.trim(),
+      }))),
+  // names changes whenever a name is edited
+  [teams, skip, names])
+
+  const mailer = useCertificateMailer<(typeof certificates)[number]>({
+    kind: 'participation',
+    label: 'certificates of participation',
+    render: (c) => <IgniteCertificate name={c.name} team={c.team} title={['Certificate', 'of Participation']} body={body} s={settings} />,
+  })
+  const recordFor = (t: PTeam) => mailer.sent[t.registration_id] ?? t.certificate_mail?.participation ?? null
+  const certsFor = (t: PTeam) => certificates.filter((c) => c.teamId === t.registration_id)
+
+  const emailTeam = (t: PTeam) => {
+    const n = certsFor(t).length
+    const again = recordFor(t) ? '\n\nThis team was already emailed — send again?' : ''
+    if (!window.confirm(`Email ${t.team_name}'s ${n} certificate${n === 1 ? '' : 's'} (one PDF) to the team leader?\nIf the leader's email fails, it goes to the next member.${again}`)) return
+    mailer.sendTeam(t, certsFor(t))
+  }
+
+  /** Emails every team not yet emailed, one after another. */
+  const emailAll = async () => {
+    const todo = teams.filter((t) => !recordFor(t) && certsFor(t).length > 0)
+    if (todo.length === 0) return toast('Every team with certificates has already been emailed')
+    if (!window.confirm(`Email certificates to ${todo.length} team leader${todo.length === 1 ? '' : 's'} (teams already emailed are skipped)?`)) return
+    const progress = toast.loading(`Emailing 0 / ${todo.length}…`)
+    let ok = 0
+    for (const [i, t] of todo.entries()) {
+      toast.loading(`Emailing ${i + 1} / ${todo.length} — ${t.team_name}…`, { id: progress })
+      if (await mailer.sendTeam(t, certsFor(t), true)) ok++
+    }
+    toast.dismiss(progress)
+    if (ok === todo.length) toast.success(`Emailed all ${ok} teams`)
+    else toast.error(`Emailed ${ok} of ${todo.length} — check the teams marked "Not emailed yet"`, { duration: 9000 })
+  }
 
   const totalMembers = teams.reduce((n, t) => n + t.members.length, 0)
   const setMembers = (t: PTeam, include: boolean, names = t.members.map((m) => m.name)) =>
@@ -95,9 +134,14 @@ function Participation() {
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">Participation certificates</h1>
             <p className="text-sm text-stone-400 mt-1">Full-colour certificates on plain A4 paper · one per participant.</p>
           </div>
-          <button onClick={() => window.print()} disabled={!certificates.length} className="btn-galaksi gap-2 px-5 min-h-[48px] disabled:opacity-50">
-            <FiPrinter /> Print {certificates.length} certificates
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={emailAll} disabled={!certificates.length || !!mailer.busyTeam} className="btn-outline-galaksi gap-2 px-5 min-h-[48px] disabled:opacity-50">
+              <FiMail /> Email all teams
+            </button>
+            <button onClick={() => window.print()} disabled={!certificates.length} className="btn-galaksi gap-2 px-5 min-h-[48px] disabled:opacity-50">
+              <FiPrinter /> Print {certificates.length} certificates
+            </button>
+          </div>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:items-start">
@@ -118,6 +162,14 @@ function Participation() {
                   onTeam={(include) => setMembers(t, include)}
                   onMember={(name, include) => setMembers(t, include, [name])}
                   names={names}
+                  footer={
+                    <MailStatus
+                      record={recordFor(t)}
+                      busy={mailer.busyTeam === t.registration_id}
+                      disabled={!!mailer.busyTeam || certsFor(t).length === 0}
+                      onSend={() => emailTeam(t)}
+                    />
+                  }
                 />
               ))}
               {teams.length === 0 && <li className="text-sm text-stone-400">Loading verified teams…</li>}
@@ -140,6 +192,7 @@ function Participation() {
           <IgniteCertificate key={c.key} name={c.name} team={c.team} title={['Certificate', 'of Participation']} body={body} s={settings} />
         ))}
       </div>
+      {mailer.stageElement}
     </div>
   )
 }

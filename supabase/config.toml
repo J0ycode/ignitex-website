@@ -24,3 +24,10 @@ entrypoint = "./functions/checkin-login/index.ts"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/send-selection/index.ts"
+
+# Emails a team's certificates PDF: leader first, next member if that fails.
+# Called from /admin/participation and /admin/certificates with the organiser's session.
+[functions.send-certificates]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/send-certificates/index.ts"
