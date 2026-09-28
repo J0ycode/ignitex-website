@@ -295,7 +295,7 @@ function Dashboard({ email }: { email: string }) {
           </ToolbarButton>
           <ToolbarButton label="Refresh" onClick={load}><FiRefreshCw className={loading ? 'animate-spin' : ''} /></ToolbarButton>
           <ToolbarButton label="Print" title="Printable team sheet (PDF)" onClick={() => window.open('/admin/print', '_blank')}><FiPrinter /></ToolbarButton>
-          <ToolbarButton label="Certificates" title="Fill the printed certificates" onClick={() => window.open('/admin/certificates', '_blank')}><FiAward /></ToolbarButton>
+          <ToolbarButton label="Certificates" title="Prize &amp; finalist certificates (Final Round teams)" onClick={() => window.open('/admin/certificates', '_blank')}><FiAward /></ToolbarButton>
           <ToolbarButton label="Participation" title="Certificates of participation (all teams)" onClick={() => window.open('/admin/participation', '_blank')}><FiFileText /></ToolbarButton>
           <ToolbarButton label="Export" title="Export CSV" onClick={() => downloadCsv(teams)}><FiDownload /></ToolbarButton>
           <ToolbarButton label="Sign out" onClick={() => supabase.auth.signOut()}><FiLogOut /></ToolbarButton>
