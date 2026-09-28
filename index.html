@@ -35,9 +35,37 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script>
+      // A page cached from an older deploy points at files that no longer exist
+      // (404) and would stay blank. Reload once to fetch the current version.
+      (function () {
+        var KEY = 'ignitex:asset-reload';
+        window.addEventListener('error', function (e) {
+          var el = e.target;
+          var url = el && (el.src || el.href);
+          if (!url || String(url).indexOf('/assets/') === -1) return;
+          try {
+            var last = Number(sessionStorage.getItem(KEY) || 0);
+            if (Date.now() - last < 60000) return;
+            sessionStorage.setItem(KEY, String(Date.now()));
+          } catch (_) { return; }
+          location.reload();
+        }, true);
+      })();
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Replaced by the app once it starts; only visible if loading fails -->
+      <div id="boot-fallback" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#141210;text-align:center;font-family:system-ui,sans-serif;color:#e7e2da;opacity:0;animation:boot-show 0s 6s forwards">
+        <div>
+          <p style="font-size:18px;font-weight:700;margin:0 0 8px">This page didn't load</p>
+          <p style="font-size:14px;color:#a8a29e;margin:0 0 16px">The site was just updated. Reload to get the latest version.</p>
+          <button onclick="location.reload()" style="background:#ff6b1a;color:#140a03;border:0;border-radius:999px;padding:12px 28px;font-weight:700;font-size:15px;cursor:pointer">Reload</button>
+        </div>
+        <style>@keyframes boot-show { to { opacity: 1 } }</style>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
