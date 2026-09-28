@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { FiArrowLeft, FiMail, FiPrinter } from 'react-icons/fi'
@@ -168,6 +168,7 @@ function PrizeCertificates() {
             <div className="flex flex-wrap gap-x-5 gap-y-1 mb-2 text-sm">
               <Link to="/admin" className="flex items-center gap-2 text-stone-400 hover:text-galaksi-100"><FiArrowLeft /> Back to admin</Link>
               <Link to="/admin/participation" className="text-stone-400 hover:text-galaksi-100">Participation certificates →</Link>
+              <Link to="/admin/blank-certificates" className="text-stone-400 hover:text-galaksi-100">Blank certificates →</Link>
             </div>
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">Prize &amp; finalist certificates</h1>
             <p className="text-sm text-stone-400 mt-1">Final Round teams · full-colour on plain A4 · same design as participation.</p>
@@ -246,7 +247,7 @@ function PrizeCertificates() {
       </div>
 
       <div className="space-y-6 print:space-y-0">
-        {certificates.map((c) => <div key={c.key}>{renderCert(c)}</div>)}
+        {certificates.map((c) => <Fragment key={c.key}>{renderCert(c)}</Fragment>)}
       </div>
       {mailer.stageElement}
     </div>

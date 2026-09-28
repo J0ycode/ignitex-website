@@ -130,6 +130,7 @@ function Participation() {
             <div className="flex flex-wrap gap-x-5 gap-y-1 mb-2 text-sm">
               <Link to="/admin" className="flex items-center gap-2 text-stone-400 hover:text-galaksi-100"><FiArrowLeft /> Back to admin</Link>
               <Link to="/admin/certificates" className="text-stone-400 hover:text-galaksi-100">Prize &amp; finalist certificates →</Link>
+              <Link to="/admin/blank-certificates" className="text-stone-400 hover:text-galaksi-100">Blank certificates →</Link>
             </div>
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">Participation certificates</h1>
             <p className="text-sm text-stone-400 mt-1">Full-colour certificates on plain A4 paper · one per participant.</p>

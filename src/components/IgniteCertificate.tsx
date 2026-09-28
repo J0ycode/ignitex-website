@@ -95,7 +95,7 @@ export function useNameOverrides() {
 
 // ── The certificate ──────────────────────────────────────────────────────────
 
-export function IgniteCertificate({ name, team, prize, title, badge, body, s }: {
+export function IgniteCertificate({ name, team, prize, title, badge, body, s, blank }: {
   name: string
   team: string
   prize?: string
@@ -103,12 +103,14 @@ export function IgniteCertificate({ name, team, prize, title, badge, body, s }: 
   title: [string, string]
   /** Optional orange label beside the title, e.g. '1st Prize' */
   badge?: string
-  /** Main text; {team} and {prize} are filled in and highlighted */
+  /** Main text; {team} and {prize} are filled in and highlighted, {blank:N} is an N mm line */
   body: string
   s: CertSettings
+  /** Blank template to fill in by hand: roomier lines for handwriting */
+  blank?: boolean
 }) {
   return (
-    <div className="pc-page">
+    <div className={`pc-page ${blank ? 'pc-blank-mode' : ''}`}>
       {/* Left panel: year, orbit shapes, logos */}
       <div className="pc-panel">
         <p className="pc-year">20<br />26</p>
@@ -140,9 +142,11 @@ export function IgniteCertificate({ name, team, prize, title, badge, body, s }: 
         <p className="pc-given">This certificate is proudly presented to</p>
         <div className="pc-name-wrap"><p className="pc-name">{name}</p></div>
         <p className="pc-body">
-          {body.split(/(\{team\}|\{prize\})/).map((part, i) =>
+          {/* {blank:60} = a 60 mm line to fill in by hand (blank templates) */}
+          {body.split(/(\{team\}|\{prize\}|\{blank:\d+\})/).map((part, i) =>
             part === '{team}' ? <strong key={i}>{team}</strong>
               : part === '{prize}' ? <strong key={i}>{prize ?? ''}</strong>
+              : part.startsWith('{blank:') ? <span key={i} className="pc-blank" style={{ width: `${part.slice(7, -1)}mm` }} />
               : part)}
         </p>
         <p className="pc-footer">{s.footer}</p>
@@ -466,7 +470,15 @@ const CERT_CSS = `
 
 .pc-given { margin: 14mm 0 0; font-size: 11.5pt; color: #57534E; }
 .pc-name-wrap { margin-top: 3.5mm; border-top: 0.35mm solid #1D1B19; border-bottom: 0.35mm solid #1D1B19; padding: 5mm 0; }
-.pc-name { margin: 0; font: 800 36pt/1.1 'Archivo', system-ui, sans-serif; color: #141312; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-name { margin: 0; font: 800 36pt/1.1 'Archivo', system-ui, sans-serif; color: #141312; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.1em; }
+.pc-blank { display: inline-block; height: 1.1em; vertical-align: -0.3em; border-bottom: 0.3mm solid #1D1B19; margin: 0 1mm; }
+/* Blank templates: room to write, but still fits A4 with the signatures */
+.pc-blank-mode .pc-title-row { margin-top: 8mm; }
+.pc-blank-mode .pc-given { margin-top: 8mm; }
+.pc-blank-mode .pc-name-wrap { padding: 7mm 0; }
+.pc-blank-mode .pc-body { line-height: 2.15; margin-top: 3mm; max-width: none; }
+.pc-blank-mode .pc-footer { margin-top: 4mm; }
+.pc-blank-mode .pc-sig-img-wrap { height: 12mm; }
 .pc-body { margin: 7mm 0 0; font-size: 12.5pt; line-height: 1.55; color: #3F3A35; max-width: 175mm; }
 .pc-body strong { color: #E2560D; font-weight: 700; }
 .pc-footer { margin: 8mm 0 0; padding-bottom: 3mm; border-bottom: 0.35mm solid #1D1B19;
