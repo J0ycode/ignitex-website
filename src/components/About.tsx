@@ -12,7 +12,7 @@ const NUMBERS = [
 
 const SCHEDULE = [
   { day: 'Fri 25 Sep', time: '6:00 PM', what: 'Registration opens' },
-  { day: 'Mon 28 Sep', time: '9:00 AM', what: 'Registration closes' },
+  { day: 'Mon 28 Sep', time: '9:20 AM', what: 'Registration closes' },
   { day: 'Mon 28 Sep', time: '9:30 AM', what: 'Round 1 begins' },
   { day: 'Tue 29 Sep', time: '',        what: 'Round 2' },
 ]
