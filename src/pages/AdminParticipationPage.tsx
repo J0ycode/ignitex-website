@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { AdminShell, AdminLoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import {
   CertificateStyles, Field, IgniteCertificate, SharedSettingsFields, TeamPicker,
-  loadStored, memberKey, saveStored, tidyName, useCertSettings,
+  loadStored, memberKey, saveStored, useCertSettings, useNameOverrides,
 } from '../components/IgniteCertificate'
 
 /*
@@ -44,6 +44,7 @@ function Participation() {
   const [teams, setTeams] = useState<PTeam[]>([])
   const [forbidden, setForbidden] = useState(false)
   const { settings, set, reset } = useCertSettings()
+  const names = useNameOverrides()
   const [body, setBody] = useState(() => {
     try { return localStorage.getItem(BODY_KEY) ?? loadStored('ignitex:participation-wording', { body: DEFAULT_BODY }).body } catch { return DEFAULT_BODY }
   })
@@ -69,7 +70,7 @@ function Participation() {
     .flatMap((t) => [...t.members]
       .sort((a, b) => Number(b.is_leader) - Number(a.is_leader))
       .filter((m) => !skip[memberKey(t.registration_id, m.name)])
-      .map((m) => ({ key: memberKey(t.registration_id, m.name), name: tidyName(m.name), team: t.team_name.trim() }))),
+      .map((m) => ({ key: memberKey(t.registration_id, m.name), name: names.nameFor(t.registration_id, m.name), team: t.team_name.trim() }))),
   [teams, skip])
 
   const totalMembers = teams.reduce((n, t) => n + t.members.length, 0)
@@ -116,6 +117,7 @@ function Participation() {
                   isIncluded={(name) => !skip[memberKey(t.registration_id, name)]}
                   onTeam={(include) => setMembers(t, include)}
                   onMember={(name, include) => setMembers(t, include, [name])}
+                  names={names}
                 />
               ))}
               {teams.length === 0 && <li className="text-sm text-stone-400">Loading verified teams…</li>}

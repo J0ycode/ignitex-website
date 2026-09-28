@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { FiUpload, FiX } from 'react-icons/fi'
+import { FiCheck, FiEdit2, FiRotateCcw, FiUpload, FiX } from 'react-icons/fi'
 import igniteLogo from '../assets/ignitex-logo.webp'
 import txaLogo from '../assets/txa-logo.webp'
 import niceLogo from '../assets/nice-logo.png'
@@ -69,6 +69,29 @@ export function tidyName(raw: string) {
 }
 
 export const memberKey = (teamId: string, name: string) => `${teamId}|${name}`
+
+const NAMES_KEY = 'ignitex:cert-name-overrides'
+
+/**
+ * Corrected spellings for certificates only (the registration itself is unchanged).
+ * Shared by the participation and prize pages; stored on this device.
+ */
+export function useNameOverrides() {
+  const [names, setNames] = useState<Record<string, string>>(() => loadStored(NAMES_KEY, {}))
+  useEffect(() => saveStored(NAMES_KEY, names), [names])
+  const nameFor = (teamId: string, name: string) => names[memberKey(teamId, name)] ?? tidyName(name)
+  const rename = (teamId: string, name: string, next: string) =>
+    setNames((n) => {
+      const copy = { ...n }
+      const k = memberKey(teamId, name)
+      const clean = next.trim().replace(/\s+/g, ' ')
+      if (!clean || clean === tidyName(name)) delete copy[k]
+      else copy[k] = clean
+      return copy
+    })
+  const isRenamed = (teamId: string, name: string) => memberKey(teamId, name) in names
+  return { nameFor, rename, isRenamed }
+}
 
 // ── The certificate ──────────────────────────────────────────────────────────
 
@@ -180,11 +203,13 @@ export interface PickTeam {
 }
 
 /** Team tick box (all / some / none) with a tick box per member underneath. */
-export function TeamPicker({ team, isIncluded, onTeam, onMember, extra }: {
+export function TeamPicker({ team, isIncluded, onTeam, onMember, extra, names }: {
   team: PickTeam
   isIncluded: (name: string) => boolean
   onTeam: (include: boolean) => void
   onMember: (name: string, include: boolean) => void
+  /** Name editing (from useNameOverrides) */
+  names: ReturnType<typeof useNameOverrides>
   /** Optional control shown on the team row (e.g. the prize picker) */
   extra?: React.ReactNode
 }) {
@@ -205,21 +230,78 @@ export function TeamPicker({ team, isIncluded, onTeam, onMember, extra }: {
       </div>
       <ul className="mt-2 ml-7 space-y-1">
         {[...team.members].sort((a, b) => Number(b.is_leader) - Number(a.is_leader)).map((m) => (
-          <li key={m.name}>
-            <label className="flex items-center gap-2.5 min-h-[30px] cursor-pointer text-sm">
-              <input
-                type="checkbox"
-                checked={isIncluded(m.name)}
-                onChange={(e) => onMember(m.name, e.target.checked)}
-                className="w-3.5 h-3.5 accent-orange-500"
-              />
-              <span className={isIncluded(m.name) ? 'text-stone-200' : 'text-stone-500 line-through'}>
-                {tidyName(m.name)}{m.is_leader && <span className="text-stone-500 no-underline"> · leader</span>}
-              </span>
-            </label>
-          </li>
+          <MemberRow
+            key={m.name}
+            teamId={team.registration_id}
+            member={m}
+            included={isIncluded(m.name)}
+            onInclude={(v) => onMember(m.name, v)}
+            names={names}
+          />
         ))}
       </ul>
+    </li>
+  )
+}
+
+function MemberRow({ teamId, member, included, onInclude, names }: {
+  teamId: string
+  member: { name: string; is_leader: boolean }
+  included: boolean
+  onInclude: (v: boolean) => void
+  names: ReturnType<typeof useNameOverrides>
+}) {
+  const shown = names.nameFor(teamId, member.name)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(shown)
+  const save = () => { names.rename(teamId, member.name, draft); setEditing(false) }
+
+  if (editing) {
+    return (
+      <li className="flex items-center gap-1.5 min-h-[34px]">
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+          aria-label={`Name on certificate for ${member.name}`}
+          className="flex-1 min-w-0 rounded-md bg-white/5 border border-galaksi-400/50 px-2 py-1 text-sm text-galaksi-100"
+        />
+        <button onClick={save} aria-label="Save name" className="w-7 h-7 flex items-center justify-center rounded-md text-green-300 hover:bg-white/10"><FiCheck /></button>
+        <button onClick={() => setEditing(false)} aria-label="Cancel" className="w-7 h-7 flex items-center justify-center rounded-md text-stone-400 hover:bg-white/10"><FiX /></button>
+      </li>
+    )
+  }
+
+  const renamed = names.isRenamed(teamId, member.name)
+  return (
+    <li className="group flex items-center gap-1.5 min-h-[30px]">
+      <label className="flex items-center gap-2.5 cursor-pointer text-sm min-w-0 flex-1">
+        <input type="checkbox" checked={included} onChange={(e) => onInclude(e.target.checked)} className="w-3.5 h-3.5 accent-orange-500" />
+        <span className={`truncate ${included ? 'text-stone-200' : 'text-stone-500 line-through'}`}>
+          {shown}
+          {member.is_leader && <span className="text-stone-500"> · leader</span>}
+          {renamed && <span className="text-galaksi-300 text-xs"> · edited</span>}
+        </span>
+      </label>
+      <button
+        onClick={() => { setDraft(shown); setEditing(true) }}
+        aria-label={`Edit name for ${member.name}`}
+        title="Edit name on certificate"
+        className="w-7 h-7 flex items-center justify-center rounded-md text-stone-500 hover:text-galaksi-100 hover:bg-white/10"
+      >
+        <FiEdit2 className="w-3.5 h-3.5" />
+      </button>
+      {renamed && (
+        <button
+          onClick={() => names.rename(teamId, member.name, '')}
+          aria-label="Undo name edit"
+          title={`Back to "${tidyName(member.name)}"`}
+          className="w-7 h-7 flex items-center justify-center rounded-md text-stone-500 hover:text-galaksi-100 hover:bg-white/10"
+        >
+          <FiRotateCcw className="w-3.5 h-3.5" />
+        </button>
+      )}
     </li>
   )
 }

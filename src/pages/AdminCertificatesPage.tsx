@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { AdminShell, AdminLoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import {
   CertificateStyles, Field, IgniteCertificate, SharedSettingsFields, TeamPicker,
-  loadStored, memberKey, saveStored, tidyName, useCertSettings,
+  loadStored, memberKey, saveStored, useCertSettings, useNameOverrides,
 } from '../components/IgniteCertificate'
 
 /*
@@ -60,6 +60,7 @@ function PrizeCertificates() {
   const [teams, setTeams] = useState<CertTeam[]>([])
   const [forbidden, setForbidden] = useState(false)
   const { settings, set, reset } = useCertSettings()
+  const names = useNameOverrides()
   // Final Round teams default to a Finalist certificate until a prize is chosen
   const [awards, setAwards] = useState<Record<string, Award>>(() => loadStored(AWARD_KEY, {}))
   const [skip, setSkip] = useState<Record<string, boolean>>(() => loadStored(SKIP_KEY, {}))
@@ -93,7 +94,7 @@ function PrizeCertificates() {
         return [...t.members]
           .sort((a, b) => Number(b.is_leader) - Number(a.is_leader))
           .filter((m) => !skip[memberKey(t.registration_id, m.name)])
-          .map((m) => ({ key: memberKey(t.registration_id, m.name), name: tidyName(m.name), team: t.team_name.trim(), award }))
+          .map((m) => ({ key: memberKey(t.registration_id, m.name), name: names.nameFor(t.registration_id, m.name), team: t.team_name.trim(), award }))
       })
   }, [teams, awards, skip])
 
@@ -138,6 +139,7 @@ function PrizeCertificates() {
                   isIncluded={(name) => !skip[memberKey(t.registration_id, name)]}
                   onTeam={(include) => setMembers(t, include)}
                   onMember={(name, include) => setMembers(t, include, [name])}
+                  names={names}
                   extra={
                     <select
                       value={awards[t.registration_id] ?? 'finalist'}
