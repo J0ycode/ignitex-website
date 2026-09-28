@@ -13,7 +13,7 @@ export default function Navbar() {
   const location = useLocation()
   const [open, setOpen] = useState(false)
   // Hide the Register CTA where it's redundant or out of place
-  const hideRegister = ['/register', '/admin', '/admin/print', '/admin/certificates', '/registration'].includes(location.pathname)
+  const hideRegister = ['/register', '/admin', '/admin/print', '/admin/certificates', '/admin/participation', '/registration'].includes(location.pathname)
   const onMyTicket = location.pathname === '/my-registration'
 
   // Close the mobile menu on navigation and on Escape

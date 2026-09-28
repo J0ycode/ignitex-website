@@ -164,9 +164,10 @@ function CertificateDesk() {
       <div className="print:hidden space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-3 pb-5 border-b border-ink-line">
           <div>
-            <Link to="/admin" className="flex items-center gap-2 text-sm text-stone-400 hover:text-galaksi-100 mb-2">
-              <FiArrowLeft /> Back to admin
-            </Link>
+            <div className="flex flex-wrap gap-x-5 gap-y-1 mb-2 text-sm">
+              <Link to="/admin" className="flex items-center gap-2 text-stone-400 hover:text-galaksi-100"><FiArrowLeft /> Back to admin</Link>
+              <Link to="/admin/participation" className="text-stone-400 hover:text-galaksi-100">Participation certificates →</Link>
+            </div>
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-galaksi-100">Certificates</h1>
             <p className="text-sm text-stone-400 mt-1">Prints only the text, onto the pre-printed certificate (A4 landscape).</p>
           </div>

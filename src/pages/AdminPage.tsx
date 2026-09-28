@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
   FiCheck, FiX, FiEye, FiDownload, FiRefreshCw, FiLogOut, FiChevronDown, FiSearch,
-  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2, FiUserCheck, FiArrowDown, FiArrowUp, FiPrinter, FiAward,
+  FiMail, FiMessageCircle, FiBell, FiAlertTriangle, FiMonitor, FiTrash2, FiUserCheck, FiArrowDown, FiArrowUp, FiPrinter, FiAward, FiFileText,
 } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { AdminShell as Shell, AdminLoginForm as LoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
@@ -296,6 +296,7 @@ function Dashboard({ email }: { email: string }) {
           <ToolbarButton label="Refresh" onClick={load}><FiRefreshCw className={loading ? 'animate-spin' : ''} /></ToolbarButton>
           <ToolbarButton label="Print" title="Printable team sheet (PDF)" onClick={() => window.open('/admin/print', '_blank')}><FiPrinter /></ToolbarButton>
           <ToolbarButton label="Certificates" title="Fill the printed certificates" onClick={() => window.open('/admin/certificates', '_blank')}><FiAward /></ToolbarButton>
+          <ToolbarButton label="Participation" title="Certificates of participation (all teams)" onClick={() => window.open('/admin/participation', '_blank')}><FiFileText /></ToolbarButton>
           <ToolbarButton label="Export" title="Export CSV" onClick={() => downloadCsv(teams)}><FiDownload /></ToolbarButton>
           <ToolbarButton label="Sign out" onClick={() => supabase.auth.signOut()}><FiLogOut /></ToolbarButton>
         </div>
