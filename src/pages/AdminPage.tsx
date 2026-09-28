@@ -215,6 +215,14 @@ function Dashboard({ email }: { email: string }) {
     return c
   }, [teams])
 
+  // Open on "To review" only when something is waiting; otherwise show all teams
+  // (an empty review list looked like a blank screen once every team was verified)
+  const pickedFilter = useRef(false)
+  useEffect(() => {
+    if (pickedFilter.current || loading) return
+    setFilter(counts.ticket_uploaded > 0 ? 'review' : 'all')
+  }, [loading, counts.ticket_uploaded])
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
     return teams
@@ -306,7 +314,7 @@ function Dashboard({ email }: { email: string }) {
             return (
               <button
                 key={f.key}
-                onClick={() => setFilter(f.key)}
+                onClick={() => { pickedFilter.current = true; setFilter(f.key) }}
                 aria-pressed={filter === f.key}
                 className={`shrink-0 flex items-center gap-2 px-3.5 min-h-[40px] rounded-lg text-sm font-semibold transition-colors ${
                   filter === f.key ? 'bg-galaksi-100 text-galaksi-900' : 'text-stone-300 hover:text-galaksi-100'
