@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { FiArrowLeft, FiPrinter } from 'react-icons/fi'
+import { FiArrowLeft, FiPrinter, FiUpload, FiX } from 'react-icons/fi'
 import { supabase } from '../lib/supabase'
 import { AdminShell, AdminLoginForm, useAdminSession, useIdleSignOut } from '../components/AdminAuth'
 import igniteLogo from '../assets/ignitex-logo.webp'
@@ -31,6 +31,9 @@ interface Wording {
   sig1Title: string
   sig2Name: string
   sig2Title: string
+  /** Signature images as PNG data URLs ('' = none, sign by hand) */
+  sig1Img: string
+  sig2Img: string
 }
 
 const DEFAULTS: Wording = {
@@ -42,6 +45,8 @@ const DEFAULTS: Wording = {
   sig1Title: 'Convenor',
   sig2Name: '',
   sig2Title: 'Principal',
+  sig1Img: '',
+  sig2Img: '',
 }
 
 const WORDING_KEY = 'ignitex:participation-wording'
@@ -169,6 +174,10 @@ function Participation() {
               <Field label="Signature 2 — name" value={wording.sig2Name} onChange={(v) => set('sig2Name', v)} placeholder="(sign by hand)" />
               <Field label="Signature 2 — title" value={wording.sig2Title} onChange={(v) => set('sig2Title', v)} />
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <SignatureUpload label="Signature 1 — image" value={wording.sig1Img} onChange={(v) => set('sig1Img', v)} />
+              <SignatureUpload label="Signature 2 — image" value={wording.sig2Img} onChange={(v) => set('sig2Img', v)} />
+            </div>
             <button onClick={() => { if (window.confirm('Reset the wording to the defaults?')) setWording(DEFAULTS) }} className="text-xs text-stone-400 hover:text-galaksi-100 min-h-[36px]">
               Reset wording
             </button>
@@ -277,8 +286,9 @@ function Certificate({ name, team, w }: { name: string; team: string; w: Wording
         <p className="pc-footer">{w.footer}</p>
 
         <div className="pc-sigs">
-          {[[w.sig1Name, w.sig1Title], [w.sig2Name, w.sig2Title]].map(([n, t], i) => (
+          {[[w.sig1Name, w.sig1Title, w.sig1Img], [w.sig2Name, w.sig2Title, w.sig2Img]].map(([n, t, img], i) => (
             <div key={i} className="pc-sig">
+              <div className="pc-sig-img-wrap">{img && <img src={img} alt="" className="pc-sig-img" />}</div>
               <p className="pc-sig-name">{n || ' '}</p>
               <p className="pc-sig-title">{t}</p>
             </div>
@@ -319,6 +329,60 @@ function Sparkle({ className }: { className: string }) {
     <svg className={className} viewBox="-10 -10 20 20" aria-hidden>
       <path d={sparklePath(0, 0, 10)} fill="#FF6B1A" />
     </svg>
+  )
+}
+
+/** Shrinks an uploaded signature to at most 700×260 px, kept as PNG (transparency survives). */
+function readSignature(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      const scale = Math.min(1, 700 / img.width, 260 / img.height)
+      const c = document.createElement('canvas')
+      c.width = Math.round(img.width * scale)
+      c.height = Math.round(img.height * scale)
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height)
+      URL.revokeObjectURL(url)
+      resolve(c.toDataURL('image/png'))
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')) }
+    img.src = url
+  })
+}
+
+function SignatureUpload({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const pick = async (file: File | undefined) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) return toast.error('Choose a PNG or JPG image')
+    try {
+      onChange(await readSignature(file))
+    } catch {
+      toast.error('Could not read that image')
+    }
+  }
+  return (
+    <div>
+      <span className="text-xs text-stone-400">{label}</span>
+      {value ? (
+        <div className="mt-1 relative rounded-xl bg-white p-2 h-[52px] flex items-center justify-center">
+          <img src={value} alt="Signature preview" className="max-h-full max-w-full object-contain" />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            aria-label="Remove signature"
+            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-neutral-800 text-white flex items-center justify-center"
+          >
+            <FiX className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <label className="mt-1 flex items-center justify-center gap-2 h-[52px] rounded-xl border border-dashed border-white/20 text-sm text-stone-300 cursor-pointer hover:border-galaksi-400/60">
+          <FiUpload /> Upload PNG
+          <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = '' }} />
+        </label>
+      )}
+    </div>
   )
 }
 
@@ -384,6 +448,9 @@ const PARTICIPATION_CSS = `
 
 .pc-sigs { margin-top: auto; display: flex; justify-content: space-between; }
 .pc-sig { width: 64mm; }
+.pc-sig-img-wrap { height: 17mm; display: flex; align-items: flex-end; justify-content: center; }
+/* multiply: a white JPG background disappears into the paper */
+.pc-sig-img { max-height: 17mm; max-width: 60mm; object-fit: contain; margin-bottom: -2.5mm; mix-blend-mode: multiply; }
 .pc-sig-name { margin: 0; padding-bottom: 1.5mm; border-bottom: 0.35mm solid #1D1B19; font: 700 12pt 'Archivo', sans-serif; min-height: 5mm; }
 .pc-sig-title { margin: 1.5mm 0 0; font-size: 10pt; color: #57534E; }
 
