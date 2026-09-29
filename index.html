@@ -38,17 +38,21 @@
     <script>
       // A page cached from an older deploy points at files that no longer exist
       // (404) and would stay blank. Reload once to fetch the current version.
+      // If it fails again right after that reload, show the "didn't load" message.
       (function () {
         var KEY = 'ignitex:asset-reload';
+        function showFailed() {
+          document.documentElement.classList.add('boot-failed');
+        }
         window.addEventListener('error', function (e) {
           var el = e.target;
           var url = el && (el.src || el.href);
           if (!url || String(url).indexOf('/assets/') === -1) return;
           try {
             var last = Number(sessionStorage.getItem(KEY) || 0);
-            if (Date.now() - last < 60000) return;
+            if (Date.now() - last < 60000) return showFailed();
             sessionStorage.setItem(KEY, String(Date.now()));
-          } catch (_) { return; }
+          } catch (_) { return showFailed(); }
           location.reload();
         }, true);
       })();
@@ -56,14 +60,26 @@
   </head>
   <body>
     <div id="root">
-      <!-- Replaced by the app once it starts; only visible if loading fails -->
-      <div id="boot-fallback" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#141210;text-align:center;font-family:system-ui,sans-serif;color:#e7e2da;opacity:0;animation:boot-show 0s 6s forwards">
-        <div>
+      <!-- Replaced by the app once it starts. On a slow connection a quiet
+           "still loading" note appears after 25 s; the "didn't load" message
+           only appears when a file actually failed (see the script above). -->
+      <div id="boot-fallback" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#141210;text-align:center;font-family:system-ui,sans-serif;color:#e7e2da">
+        <div class="boot-slow">
+          <p style="font-size:15px;color:#a8a29e;margin:0 0 14px">Still loading — your connection seems slow.</p>
+          <button onclick="location.reload()" style="background:transparent;color:#e7e2da;border:1px solid #57534e;border-radius:999px;padding:10px 24px;font-size:14px;cursor:pointer">Reload</button>
+        </div>
+        <div class="boot-error">
           <p style="font-size:18px;font-weight:700;margin:0 0 8px">This page didn't load</p>
           <p style="font-size:14px;color:#a8a29e;margin:0 0 16px">The site was just updated. Reload to get the latest version.</p>
           <button onclick="location.reload()" style="background:#ff6b1a;color:#140a03;border:0;border-radius:999px;padding:12px 28px;font-weight:700;font-size:15px;cursor:pointer">Reload</button>
         </div>
-        <style>@keyframes boot-show { to { opacity: 1 } }</style>
+        <style>
+          .boot-slow { opacity: 0; animation: boot-show 0s 25s forwards; }
+          .boot-error { display: none; }
+          .boot-failed .boot-slow { display: none; }
+          .boot-failed .boot-error { display: block; }
+          @keyframes boot-show { to { opacity: 1 } }
+        </style>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
