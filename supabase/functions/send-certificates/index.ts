@@ -6,7 +6,8 @@
 // matches the on-screen certificates exactly.
 //
 // Body: { registration_id, kind: 'participation' | 'prize', label, pdf_base64, filename }
-// Secrets: GMAIL_USER, GMAIL_APP_PASSWORD (same as send-ticket).
+// Secrets: CERT_GMAIL_USER + CERT_GMAIL_APP_PASSWORD (the certificates mailbox,
+// ignitexnice@gmail.com). Falls back to GMAIL_USER / GMAIL_APP_PASSWORD if unset.
 //
 // "Fails" means what can be known while sending: an invalid address, a domain with
 // no mail server, or the mail server refusing the recipient. A mailbox that bounces
@@ -92,11 +93,14 @@ Deno.serve(async (req) => {
 
     const certLabel = typeof label === 'string' && label.trim() ? label.trim() : 'igniteX certificates'
     const count = Number(certificate_count) || undefined
+    // Certificates go out from their own mailbox when configured
+    const mailUser = Deno.env.get('CERT_GMAIL_USER') || env('GMAIL_USER')
+    const mailPass = Deno.env.get('CERT_GMAIL_APP_PASSWORD') || env('GMAIL_APP_PASSWORD')
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465, // Supabase Edge blocks 25/587
       secure: true,
-      auth: { user: env('GMAIL_USER'), pass: env('GMAIL_APP_PASSWORD') },
+      auth: { user: mailUser, pass: mailPass },
     })
 
     // ── 3. Try each member in turn ──────────────────────────────────────────
@@ -132,7 +136,7 @@ Deno.serve(async (req) => {
 
       try {
         const info = await transporter.sendMail({
-          from: `"igniteX" <${env('GMAIL_USER')}>`,
+          from: `"igniteX" <${mailUser}>`,
           to: c.email,
           subject: `igniteX 2026 — ${certLabel} for team ${team.team_name}`,
           html,
