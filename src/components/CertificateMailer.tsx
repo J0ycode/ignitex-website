@@ -44,13 +44,25 @@ export function useCertificateMailer<C>({ kind, label, render }: {
   const [stage, setStage] = useState<C[] | null>(null)
   const [busyTeam, setBusyTeam] = useState<string | null>(null)
   const [sent, setSent] = useState<Record<string, MailRecord>>({})
+  /** Per-member sends this session, keyed `${registration_id}|${member name}` */
+  const [sentMembers, setSentMembers] = useState<Record<string, MailRecord>>({})
   const stageRef = useRef<HTMLDivElement>(null)
 
-  /** Returns true when sent. */
-  const sendTeam = async (team: { registration_id: string; team_name: string }, certs: C[], quiet = false): Promise<boolean> => {
-    if (certs.length === 0) { toast.error(`No certificates ticked for ${team.team_name}`); return false }
+  /**
+   * Team mode (no `member`): all `certs` in one PDF to the leader.
+   * Member mode: `certs` is that member's own certificate, sent to them.
+   * Returns true when sent.
+   */
+  const sendTeam = async (
+    team: { registration_id: string; team_name: string },
+    certs: C[],
+    quiet = false,
+    member?: { name: string; label: string },
+  ): Promise<boolean> => {
+    const who = member ? `${member.label} (${team.team_name})` : team.team_name
+    if (certs.length === 0) { toast.error(`No certificates ticked for ${who}`); return false }
     setBusyTeam(team.registration_id)
-    const t = quiet ? undefined : toast.loading(`Preparing ${team.team_name}'s PDF…`)
+    const t = quiet ? undefined : toast.loading(`Preparing ${who}'s PDF…`)
     try {
       // Render off-screen, wait for layout, fonts and images, then capture
       setStage(certs)
@@ -61,15 +73,19 @@ export function useCertificateMailer<C>({ kind, label, render }: {
       const pages = [...root.querySelectorAll<HTMLElement>('.pc-page')]
       const pdf = await pagesToPdf(pages)
 
-      if (t) toast.loading(`Emailing ${team.team_name}…`, { id: t })
+      if (t) toast.loading(`Emailing ${who}…`, { id: t })
+      const slug = (s: string) => s.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')
       const { data, error } = await supabase.functions.invoke('send-certificates', {
         body: {
           registration_id: team.registration_id,
           kind,
-          label,
+          label: member ? label.replace(/^certificates\b/i, 'certificate') : label,
           certificate_count: certs.length,
           pdf_base64: pdf,
-          filename: `igniteX-2026-${kind}-${team.team_name.replace(/[^A-Za-z0-9]+/g, '-')}.pdf`,
+          member: member?.name,
+          filename: member
+            ? `igniteX-2026-${kind}-${slug(member.label)}.pdf`
+            : `igniteX-2026-${kind}-${slug(team.team_name)}.pdf`,
         },
       })
       let body: (Partial<MailRecord> & { sent?: boolean; error?: string; attempts?: Attempt[] }) | null = data
@@ -77,10 +93,11 @@ export function useCertificateMailer<C>({ kind, label, render }: {
 
       if (body?.sent && body.to && body.at) {
         const rec: MailRecord = { to: body.to, name: body.name ?? '', fallback: !!body.fallback, at: body.at }
-        setSent((s) => ({ ...s, [team.registration_id]: rec }))
-        const msg = rec.fallback
-          ? `${team.team_name}: leader unreachable — sent to ${rec.name} (${rec.to})`
-          : `${team.team_name}: sent to leader ${rec.name}`
+        if (member) setSentMembers((s) => ({ ...s, [`${team.registration_id}|${member.name}`]: rec }))
+        else setSent((s) => ({ ...s, [team.registration_id]: rec }))
+        const msg = member
+          ? (rec.fallback ? `${who}: their email failed — sent to ${rec.name}` : `${who}: sent`)
+          : (rec.fallback ? `${team.team_name}: leader unreachable — sent to ${rec.name} (${rec.to})` : `${team.team_name}: sent to leader ${rec.name}`)
         if (t) toast.success(msg, { id: t, duration: 6000 })
         return true
       }
@@ -88,11 +105,11 @@ export function useCertificateMailer<C>({ kind, label, render }: {
       const reason = body?.error === 'NO_REACHABLE_MEMBER' ? `no member's email worked${failed ? `: ${failed}` : ''}`
         : body?.error === 'EMAIL_SERVICE_FAILED' ? 'the email service failed — try again'
         : body?.error ?? error?.message ?? 'unknown error'
-      toast.error(`${team.team_name}: ${reason}`, { id: t, duration: 9000 })
+      toast.error(`${who}: ${reason}`, { id: t, duration: 9000 })
       return false
     } catch (e) {
       console.error(e)
-      toast.error(`${team.team_name}: could not build the PDF`, { id: t })
+      toast.error(`${who}: could not build the PDF`, { id: t })
       return false
     } finally {
       setStage(null)
@@ -108,37 +125,57 @@ export function useCertificateMailer<C>({ kind, label, render }: {
     document.body,
   )
 
-  return { sendTeam, busyTeam, sent, stageElement }
+  return { sendTeam, busyTeam, sent, sentMembers, stageElement }
 }
 
 /** Per-team "Email" button + where it last went. */
-export function MailStatus({ record, busy, disabled, onSend }: {
+export function MailStatus({ record, busy, disabled, onSend, members, sendLabel, note }: {
   record?: MailRecord | null
   busy: boolean
   disabled?: boolean
   onSend: () => void
+  /** Own-certificate emails: how many ticked members have been sent theirs */
+  members?: { sent: number; total: number; fallbacks: number }
+  sendLabel?: string
+  /** Replaces the button (e.g. prize-winning teams that aren't emailed here) */
+  note?: string
 }) {
+  const allMembers = members && members.total > 0 && members.sent >= members.total
   return (
     <div className="mt-3 pt-3 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-2">
-      <p className="text-xs min-w-0">
-        {record ? (
-          <span className={`flex items-start gap-1.5 ${record.fallback ? 'text-amber-300' : 'text-green-300'}`}>
-            {record.fallback ? <FiAlertTriangle className="shrink-0 mt-0.5" /> : <FiCheckCircle className="shrink-0 mt-0.5" />}
-            <span className="break-all">
-              {record.fallback ? 'Leader failed · sent to ' : 'Sent to '}{record.name || record.to} · {when(record.at)}
-            </span>
-          </span>
+      <div className="text-xs min-w-0 space-y-1">
+        {note ? (
+          <p className="text-galaksi-300">{note}</p>
         ) : (
-          <span className="text-stone-500">Not emailed yet</span>
+          <>
+            {record ? (
+              <p className={`flex items-start gap-1.5 ${record.fallback ? 'text-amber-300' : 'text-green-300'}`}>
+                {record.fallback ? <FiAlertTriangle className="shrink-0 mt-0.5" /> : <FiCheckCircle className="shrink-0 mt-0.5" />}
+                <span className="break-all">
+                  Team PDF: {record.fallback ? 'leader failed · sent to ' : 'sent to '}{record.name || record.to} · {when(record.at)}
+                </span>
+              </p>
+            ) : (
+              <p className="text-stone-500">Team PDF: not emailed yet</p>
+            )}
+            {members && (
+              <p className={allMembers ? 'text-green-300' : 'text-stone-500'}>
+                Own copies: {members.sent}/{members.total} sent
+                {members.fallbacks > 0 && <span className="text-amber-300"> · {members.fallbacks} via leader</span>}
+              </p>
+            )}
+          </>
         )}
-      </p>
-      <button
-        onClick={onSend}
-        disabled={busy || disabled}
-        className="shrink-0 flex items-center gap-1.5 px-3 min-h-[36px] rounded-lg bg-galaksi-500/15 border border-galaksi-500/40 text-xs font-semibold text-galaksi-100 disabled:opacity-40"
-      >
-        <FiMail /> {busy ? 'Sending…' : record ? 'Resend' : 'Email to leader'}
-      </button>
+      </div>
+      {!note && (
+        <button
+          onClick={onSend}
+          disabled={busy || disabled}
+          className="shrink-0 flex items-center gap-1.5 px-3 min-h-[36px] rounded-lg bg-galaksi-500/15 border border-galaksi-500/40 text-xs font-semibold text-galaksi-100 disabled:opacity-40"
+        >
+          <FiMail /> {busy ? 'Sending…' : sendLabel ?? (record ? 'Resend' : 'Email to leader')}
+        </button>
+      )}
     </div>
   )
 }

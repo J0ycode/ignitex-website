@@ -41,6 +41,8 @@ interface CertTeam {
   team_name: string
   payment_status: string
   is_finalist: boolean
+  /** Result recorded on 29 Sep; presets the award below */
+  final_award?: Award | null
   certificate_mail?: Partial<Record<'participation' | 'prize', MailRecord>> | null
   members: { name: string; is_leader: boolean }[]
 }
@@ -87,7 +89,7 @@ function PrizeCertificates() {
   useEffect(() => { load() }, [load])
 
   const certificates = useMemo(() => {
-    const awardOf = (t: CertTeam): Award => awards[t.registration_id] ?? 'finalist'
+    const awardOf = (t: CertTeam): Award => awards[t.registration_id] ?? t.final_award ?? 'finalist'
     return teams
       .filter((t) => awardOf(t) !== '')
       .sort((a, b) => AWARD_ORDER.indexOf(awardOf(a) as Exclude<Award, ''>) - AWARD_ORDER.indexOf(awardOf(b) as Exclude<Award, ''>))
@@ -123,7 +125,7 @@ function PrizeCertificates() {
   const recordFor = (t: CertTeam) => mailer.sent[t.registration_id] ?? t.certificate_mail?.prize ?? null
   const certsFor = (t: CertTeam) => certificates.filter((c) => c.teamId === t.registration_id)
   const awardLabel = (t: CertTeam) => {
-    const a = awards[t.registration_id] ?? 'finalist'
+    const a = awards[t.registration_id] ?? t.final_award ?? 'finalist'
     return a ? AWARDS[a].label : 'no award'
   }
 
@@ -201,7 +203,7 @@ function PrizeCertificates() {
                   names={names}
                   extra={
                     <select
-                      value={awards[t.registration_id] ?? 'finalist'}
+                      value={awards[t.registration_id] ?? t.final_award ?? 'finalist'}
                       onChange={(e) => setAwards((a) => ({ ...a, [t.registration_id]: e.target.value as Award }))}
                       aria-label={`Award for ${t.team_name}`}
                       className="shrink-0 rounded-lg bg-white/5 border border-white/10 px-2 min-h-[36px] text-sm text-galaksi-100"

@@ -19,7 +19,13 @@ interface PTeam {
   created_at: string
   team_name: string
   payment_status: string
-  certificate_mail?: Partial<Record<'participation' | 'prize', MailRecord>> | null
+  /** 'first' | 'second' | 'third' — prize winners get their certificates in person, not by email here */
+  final_award?: string | null
+  certificate_mail?: {
+    participation?: MailRecord
+    /** Own-copy emails, by member name as registered */
+    participation_members?: Record<string, MailRecord>
+  } | null
   members: { name: string; is_leader: boolean }[]
 }
 
@@ -75,6 +81,7 @@ function Participation() {
       .map((m) => ({
         key: memberKey(t.registration_id, m.name),
         teamId: t.registration_id,
+        member: m.name, // as registered — the server matches on this
         name: names.nameFor(t.registration_id, m.name),
         team: t.team_name.trim(),
       }))),
@@ -86,30 +93,76 @@ function Participation() {
     label: 'certificates of participation',
     render: (c) => <IgniteCertificate name={c.name} team={c.team} title={['Certificate', 'of Participation']} body={body} s={settings} />,
   })
+  const isWinner = (t: PTeam) => !!t.final_award
   const recordFor = (t: PTeam) => mailer.sent[t.registration_id] ?? t.certificate_mail?.participation ?? null
+  const memberRecord = (t: PTeam, member: string) =>
+    mailer.sentMembers[`${t.registration_id}|${member}`] ?? t.certificate_mail?.participation_members?.[member] ?? null
   const certsFor = (t: PTeam) => certificates.filter((c) => c.teamId === t.registration_id)
-
-  const emailTeam = (t: PTeam) => {
-    const n = certsFor(t).length
-    const again = recordFor(t) ? '\n\nThis team was already emailed — send again?' : ''
-    if (!window.confirm(`Email ${t.team_name}'s ${n} certificate${n === 1 ? '' : 's'} (one PDF) to the team leader?\nIf the leader's email fails, it goes to the next member.${again}`)) return
-    mailer.sendTeam(t, certsFor(t))
+  const memberStats = (t: PTeam) => {
+    const certs = certsFor(t)
+    const recs = certs.map((c) => memberRecord(t, c.member)).filter(Boolean) as MailRecord[]
+    return { sent: recs.length, total: certs.length, fallbacks: recs.filter((r) => r.fallback).length }
   }
 
-  /** Emails every team not yet emailed, one after another. */
-  const emailAll = async () => {
-    const todo = teams.filter((t) => !recordFor(t) && certsFor(t).length > 0)
-    if (todo.length === 0) return toast('Every team with certificates has already been emailed')
-    if (!window.confirm(`Email certificates to ${todo.length} team leader${todo.length === 1 ? '' : 's'} (teams already emailed are skipped)?`)) return
-    const progress = toast.loading(`Emailing 0 / ${todo.length}…`)
+  /**
+   * Everything still owed to one team: the whole-team PDF to the leader, then each
+   * ticked member their own certificate. Already-sent parts are skipped unless `resend`.
+   * Returns [emails sent, emails attempted].
+   */
+  const sendAllFor = async (t: PTeam, resend = false): Promise<[number, number]> => {
     let ok = 0
-    for (const [i, t] of todo.entries()) {
-      toast.loading(`Emailing ${i + 1} / ${todo.length} — ${t.team_name}…`, { id: progress })
+    let tried = 0
+    if (resend || !recordFor(t)) {
+      tried++
       if (await mailer.sendTeam(t, certsFor(t), true)) ok++
     }
+    for (const c of certsFor(t)) {
+      if (!resend && memberRecord(t, c.member)) continue
+      tried++
+      if (await mailer.sendTeam(t, [c], true, { name: c.member, label: c.name })) ok++
+    }
+    return [ok, tried]
+  }
+
+  const emailTeam = async (t: PTeam) => {
+    const n = certsFor(t).length
+    const done = !!recordFor(t) && memberStats(t).sent >= n
+    const msg = done
+      ? `${t.team_name} has already been emailed. Send everything again (team PDF + ${n} own copies)?`
+      : `Email ${t.team_name}:\n• the team PDF (${n} certificates) to the leader\n• each of the ${n} members their own certificate\n\nParts already sent are skipped. A failed address falls back to the leader / next member.`
+    if (!window.confirm(msg)) return
+    const progress = toast.loading(`Emailing ${t.team_name}…`)
+    const [ok, tried] = await sendAllFor(t, done)
     toast.dismiss(progress)
-    if (ok === todo.length) toast.success(`Emailed all ${ok} teams`)
-    else toast.error(`Emailed ${ok} of ${todo.length} — check the teams marked "Not emailed yet"`, { duration: 9000 })
+    if (tried === 0) toast('Nothing left to send for this team')
+    else if (ok === tried) toast.success(`${t.team_name}: ${ok} email${ok === 1 ? '' : 's'} sent`)
+    else toast.error(`${t.team_name}: ${ok} of ${tried} sent — see the messages above`, { duration: 9000 })
+  }
+
+  /** Emails every non-winning team whatever it is still owed, one after another. */
+  const emailAll = async () => {
+    const todo = teams.filter((t) => !isWinner(t) && certsFor(t).length > 0 &&
+      (!recordFor(t) || memberStats(t).sent < certsFor(t).length))
+    if (todo.length === 0) { toast('Every team has already been emailed'); return }
+    const winners = teams.filter(isWinner).map((t) => t.team_name).join(', ')
+    const emails = todo.reduce((n, t) => n + (recordFor(t) ? 0 : 1) + certsFor(t).length - memberStats(t).sent, 0)
+    if (!window.confirm(
+      `Send about ${emails} emails to ${todo.length} teams — each team's PDF to its leader, and every member their own certificate?` +
+      (winners ? `\n\nPrize winners are skipped: ${winners}.` : '') +
+      '\nAnything already sent is skipped. Keep this tab open until it finishes.',
+    )) return
+    const progress = toast.loading(`Emailing team 1 / ${todo.length}…`)
+    let ok = 0
+    let tried = 0
+    for (const [i, t] of todo.entries()) {
+      toast.loading(`Emailing team ${i + 1} / ${todo.length} — ${t.team_name}…`, { id: progress })
+      const [o, n] = await sendAllFor(t)
+      ok += o
+      tried += n
+    }
+    toast.dismiss(progress)
+    if (ok === tried) toast.success(`Done — ${ok} emails sent to ${todo.length} teams`, { duration: 9000 })
+    else toast.error(`Sent ${ok} of ${tried} emails — press "Email all teams" again to retry the rest`, { duration: 12000 })
   }
 
   const totalMembers = teams.reduce((n, t) => n + t.members.length, 0)
@@ -166,9 +219,12 @@ function Participation() {
                   footer={
                     <MailStatus
                       record={recordFor(t)}
+                      members={memberStats(t)}
                       busy={mailer.busyTeam === t.registration_id}
                       disabled={!!mailer.busyTeam || certsFor(t).length === 0}
                       onSend={() => emailTeam(t)}
+                      sendLabel={recordFor(t) && memberStats(t).sent >= certsFor(t).length ? 'Resend all' : 'Email team'}
+                      note={isWinner(t) ? `🏆 ${t.final_award === 'first' ? '1st' : t.final_award === 'second' ? '2nd' : '3rd'} prize — not emailed from here (prize certificate)` : undefined}
                     />
                   }
                 />
