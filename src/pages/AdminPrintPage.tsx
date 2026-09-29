@@ -16,22 +16,20 @@ interface PrintTeam {
   created_at: string
   team_name: string
   topic: string | null
+  final_topic: string | null
+  is_finalist: boolean
   payment_status: string
   members: PrintMember[]
 }
 
-type Scope = 'verified' | 'all'
+type Scope = 'finalists' | 'verified' | 'all'
+
+// From the final day on, the sheet opens on the Final Round teams
+const FINAL_DAY_START = Date.parse('2026-09-29T00:00:00+05:30')
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 
 export default function AdminPrintPage() {
   const { session, checking } = useAdminSession()
-
-  useEffect(() => {
-    const prev = document.title
-    // Becomes the default file name in "Save as PDF"
-    document.title = 'igniteX 2026 - Registered Teams'
-    return () => { document.title = prev }
-  }, [])
 
   if (checking) return <AdminShell><p className="text-stone-400 text-sm">Loading…</p></AdminShell>
   if (!session) return <AdminShell><AdminLoginForm /></AdminShell>
@@ -43,8 +41,11 @@ function PrintSheet() {
   const [teams, setTeams] = useState<PrintTeam[]>([])
   const [loading, setLoading] = useState(true)
   const [forbidden, setForbidden] = useState(false)
-  const [scope, setScope] = useState<Scope>('verified')
+  const [scope, setScope] = useState<Scope>(() => (Date.now() >= FINAL_DAY_START ? 'finalists' : 'verified'))
+  const isFinal = scope === 'finalists'
+  // Round 1 topics (teams.topic) and Final Round topics (teams.final_topic) are separate
   const [topics, setTopics] = useState<Record<string, string>>({})
+  const [finalTopics, setFinalTopics] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const timers = useRef<Record<string, number>>({})
   const dirty = useRef(new Set<string>()) // typed but not yet saved
@@ -60,6 +61,7 @@ function PrintSheet() {
     const list = (data as PrintTeam[]) ?? []
     setTeams(list)
     setTopics(Object.fromEntries(list.map((t) => [t.registration_id, t.topic ?? ''])))
+    setFinalTopics(Object.fromEntries(list.map((t) => [t.registration_id, t.final_topic ?? ''])))
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -67,28 +69,37 @@ function PrintSheet() {
   // Registration order, #1 first
   const rows = useMemo(
     () => teams
-      .filter((t) => scope === 'all' || t.payment_status === 'verified')
+      .filter((t) => scope === 'all' || (t.payment_status === 'verified' && (scope === 'verified' || t.is_finalist)))
       .sort((a, b) => a.created_at.localeCompare(b.created_at)),
     [teams, scope],
   )
 
   /** Topics save on their own ~0.8 s after typing stops. */
   const changeTopic = (id: string, value: string) => {
-    setTopics((t) => ({ ...t, [id]: value }))
-    dirty.current.add(id)
-    window.clearTimeout(timers.current[id])
-    timers.current[id] = window.setTimeout(async () => {
+    const final = isFinal
+    ;(final ? setFinalTopics : setTopics)((t) => ({ ...t, [id]: value }))
+    const key = `${final ? 'final' : 'r1'}:${id}`
+    dirty.current.add(key)
+    window.clearTimeout(timers.current[key])
+    timers.current[key] = window.setTimeout(async () => {
       setSaveState('saving')
-      const { error } = await supabase.rpc('admin_set_topic', { p_registration_id: id, p_topic: value })
+      const { error } = await supabase.rpc(final ? 'admin_set_final_topic' : 'admin_set_topic', { p_registration_id: id, p_topic: value })
       if (error) {
         setSaveState('error')
         toast.error('Topic not saved — check your connection')
       } else {
-        dirty.current.delete(id)
+        dirty.current.delete(key)
         if (dirty.current.size === 0) setSaveState('saved')
       }
     }, 800)
   }
+
+  // Becomes the default file name in "Save as PDF"
+  useEffect(() => {
+    const prev = document.title
+    document.title = isFinal ? 'igniteX 2026 - Final Round Teams' : 'igniteX 2026 - Registered Teams'
+    return () => { document.title = prev }
+  }, [isFinal])
 
   // Don't lose a topic that is still waiting to save
   useEffect(() => {
@@ -121,7 +132,7 @@ function PrintSheet() {
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex gap-1 p-1 rounded-xl bg-white/5">
-              {(['verified', 'all'] as const).map((s) => (
+              {(['finalists', 'verified', 'all'] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setScope(s)}
@@ -130,7 +141,7 @@ function PrintSheet() {
                     scope === s ? 'bg-galaksi-100 text-galaksi-900' : 'text-stone-300 hover:text-galaksi-100'
                   }`}
                 >
-                  {s === 'verified' ? 'Verified teams' : 'All registered'}
+                  {s === 'finalists' ? 'Final Round' : s === 'verified' ? 'Verified teams' : 'All registered'}
                 </button>
               ))}
             </div>
@@ -147,20 +158,21 @@ function PrintSheet() {
 
       {/* The sheet */}
       <article className="print-sheet max-w-[210mm] mx-auto bg-white text-neutral-900 rounded-lg shadow-2xl p-6 sm:p-10 print:max-w-none print:rounded-none print:shadow-none print:p-0">
-        <header className="border-b-2 border-orange-600 pb-3 mb-5">
+        {/* key: switching lists resets any hand edits to the heading */}
+        <header key={scope} className="border-b-2 border-orange-600 pb-3 mb-5">
           <h1
             contentEditable
             suppressContentEditableWarning
             className="font-display text-2xl font-extrabold text-neutral-900 outline-none focus:bg-orange-50"
           >
-            igniteX Ideathon 2026 — Registered Teams
+            {isFinal ? 'igniteX Ideathon 2026 — Final Round Teams' : 'igniteX Ideathon 2026 — Registered Teams'}
           </h1>
           <p
             contentEditable
             suppressContentEditableWarning
             className="mt-1 text-sm text-neutral-600 outline-none focus:bg-orange-50"
           >
-            28–29 September 2026 · NICE Computer Lab · {rows.length} teams · Printed {today}
+            {isFinal ? '29 September 2026 · MBA Lab' : '28–29 September 2026 · NICE Computer Lab'} · {rows.length} teams · Printed {today}
           </p>
         </header>
 
@@ -175,7 +187,7 @@ function PrintSheet() {
                 <th className="p-2 w-10 font-semibold">No.</th>
                 <th className="p-2 w-[26%] font-semibold">Team</th>
                 <th className="p-2 font-semibold">Members &amp; college</th>
-                <th className="p-2 w-[32%] font-semibold">Topic</th>
+                <th className="p-2 w-[32%] font-semibold">{isFinal ? 'Final Round topic' : 'Topic'}</th>
               </tr>
             </thead>
             <tbody>
@@ -201,7 +213,8 @@ function PrintSheet() {
                   </td>
                   <td className="p-2">
                     <TopicField
-                      value={topics[t.registration_id] ?? ''}
+                      value={(isFinal ? finalTopics : topics)[t.registration_id] ?? ''}
+                      maxLength={isFinal ? 500 : 300}
                       onChange={(v) => changeTopic(t.registration_id, v)}
                       label={`Topic for ${t.team_name}`}
                     />
@@ -217,7 +230,7 @@ function PrintSheet() {
 }
 
 /** Textarea on screen; plain text (or blank lines to write on) when printed. */
-function TopicField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+function TopicField({ value, onChange, label, maxLength }: { value: string; onChange: (v: string) => void; label: string; maxLength: number }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   // Grow with the text so nothing is hidden
   useEffect(() => {
@@ -236,7 +249,7 @@ function TopicField({ value, onChange, label }: { value: string; onChange: (v: s
         aria-label={label}
         placeholder="Add topic…"
         rows={2}
-        maxLength={300}
+        maxLength={maxLength}
         className="print:hidden w-full resize-none rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
       />
       <div className="hidden print:block">
